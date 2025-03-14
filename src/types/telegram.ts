@@ -1,10 +1,14 @@
+/**
+ * Интерфейс для данных пользователя, полученных от Telegram Login Widget
+ */
 export interface TelegramUser {
     id: number;
-    is_bot: boolean;
     first_name: string;
     last_name?: string;
     username?: string;
-    language_code?: string;
+    photo_url?: string;
+    auth_date: number;
+    hash: string;
 }
 
 export interface TelegramChat {
@@ -59,4 +63,13 @@ export interface TelegramLoginUser {
     photo_url?: string;
     auth_date: number;
     hash: string;
-} 
+}
+
+// Расширяем глобальный интерфейс Window
+declare global {
+    interface Window {
+        onTelegramAuth?: (user: TelegramUser) => void;
+    }
+}
+
+export { }; 

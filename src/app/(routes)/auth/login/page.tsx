@@ -1,15 +1,8 @@
 'use client';
 
-import { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
-import dynamic from 'next/dynamic';
-
-// Динамически импортируем клиентский компонент
-const TelegramLoginClientComponent = dynamic(
-    () => import('@/components/auth/TelegramLoginClientComponent'),
-    { ssr: false }
-);
+import TelegramLoginClientComponent from '@/components/auth/TelegramLoginClientComponent';
+import { FaTelegram } from 'react-icons/fa';
 
 // Метаданные теперь должны быть определены в layout.tsx
 // export const metadata: Metadata = {
@@ -18,69 +11,42 @@ const TelegramLoginClientComponent = dynamic(
 // };
 
 export default function LoginPage() {
-    // Получаем имя бота из переменных окружения
-    const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '';
-
     return (
-        <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="flex justify-center">
-                    <div className="w-16 h-16 relative">
-                        <Image
-                            src="/logo.svg"
-                            alt="Franema Rental Logo"
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+            <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+                <div className="text-center">
+                    <h1 className="text-3xl font-bold text-gray-900">Вход в систему</h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Войдите через Telegram для доступа к системе бронирования
+                    </p>
                 </div>
-                <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-                    Вход в систему
-                </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
-                    Войдите через Telegram для доступа к системе бронирования
-                </p>
-            </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                    <div className="flex flex-col items-center justify-center space-y-6">
-                        <div className="text-center">
-                            <h3 className="text-lg font-medium text-gray-900">Вход через Telegram</h3>
-                            <p className="mt-1 text-sm text-gray-500">
+                <div className="mt-8 space-y-6">
+                    <div className="flex flex-col items-center space-y-4">
+                        <div className="w-full p-4 bg-blue-50 rounded-lg text-center">
+                            <div className="flex items-center justify-center mb-4 text-blue-500">
+                                <FaTelegram className="w-8 h-8" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                                Вход через Telegram
+                            </h2>
+                            <p className="text-sm text-gray-600 mb-4">
                                 Быстрый и безопасный вход без пароля
                             </p>
-                        </div>
-
-                        {/* Отладочная информация */}
-                        <div className="text-center text-xs text-gray-500 mb-2">
-                            Имя бота: {botName ? botName : 'Не задано'}
-                        </div>
-
-                        {botName ? (
-                            <div className="w-full flex justify-center py-4">
-                                <TelegramLoginClientComponent botName={botName} />
+                            <div className="flex justify-center">
+                                <TelegramLoginClientComponent botName="FranemaRentalBot" />
                             </div>
-                        ) : (
-                            <div className="text-center text-red-500">
-                                Ошибка конфигурации Telegram бота. Пожалуйста, свяжитесь с администратором.
-                            </div>
-                        )}
-
-                        <div className="w-full border-t border-gray-300 my-4" />
-
-                        <div className="text-center text-sm">
-                            <p className="text-gray-600">
-                                У вас возникли проблемы со входом?
-                            </p>
-                            <Link
-                                href="/contact"
-                                className="font-medium text-indigo-600 hover:text-indigo-500 mt-1 inline-block"
-                            >
-                                Связаться с поддержкой
-                            </Link>
                         </div>
                     </div>
+                </div>
+
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-600">
+                        Нет аккаунта?{' '}
+                        <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
+                            Зарегистрируйтесь
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>

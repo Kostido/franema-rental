@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { TelegramUser } from '@/types/telegram';
+import { useRouter } from 'next/navigation';
 
-// Добавляем типы для глобального объекта window
-declare global {
-    interface Window {
-        onTelegramAuth?: (user: any) => void;
-    }
-}
+// Не нужно объявлять глобальный интерфейс Window здесь,
+// так как он уже объявлен в src/types/telegram.ts
 
 interface TelegramLoginClientComponentProps {
     botName: string;
@@ -15,10 +13,11 @@ interface TelegramLoginClientComponentProps {
 
 export default function TelegramLoginClientComponent({ botName }: TelegramLoginClientComponentProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     useEffect(() => {
         // Определяем функцию обработки авторизации в глобальной области видимости
-        window.onTelegramAuth = (user: any) => {
+        window.onTelegramAuth = (user: TelegramUser) => {
             console.log('Telegram авторизация получена:', user);
 
             // Отправляем данные на сервер для проверки и авторизации
@@ -53,7 +52,7 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
                         alert('Вы успешно вошли через Telegram');
 
                         // Перенаправляем пользователя
-                        window.location.href = '/profile';
+                        router.push('/profile');
                     }
                 })
                 .catch(error => {
@@ -87,7 +86,7 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
                 window.onTelegramAuth = undefined;
             }
         };
-    }, [botName]);
+    }, [botName, router]);
 
     return (
         <div className="telegram-login-container" ref={containerRef}>

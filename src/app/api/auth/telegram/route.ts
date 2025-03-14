@@ -2,69 +2,60 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { TelegramUser } from '@/types/telegram';
+import { createClient } from '@supabase/supabase-js';
 
-// Интерфейс для данных пользователя Telegram
-interface TelegramUser {
-    id: number;
-    first_name: string;
-    last_name?: string;
-    username?: string;
-    photo_url?: string;
-    auth_date: number;
-    hash: string;
-}
+// Инициализация Supabase клиента
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Функция для проверки подписи данных от Telegram
-function verifyTelegramData(data: Omit<TelegramUser, 'hash'>, hash: string): boolean {
-    // Получаем токен бота из переменных окружения
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    if (!botToken) {
-        throw new Error('TELEGRAM_BOT_TOKEN не настроен');
-    }
+function verifyTelegramData(telegramData: TelegramUser): boolean {
+    // Создаем строку для проверки
+    const dataCheckString = Object.entries(telegramData)
+        .filter(([key]) => key !== 'hash')
+        .sort()
+        .map(([key, value]) => `${key}=${value}`)
+        .join('\n');
 
     // Создаем секретный ключ на основе токена бота
     const secretKey = crypto
         .createHash('sha256')
-        .update(botToken)
+        .update(telegramBotToken)
         .digest();
 
-    // Сортируем поля в алфавитном порядке и создаем строку данных
-    const dataCheckString = Object.entries(data)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => `${key}=${value}`)
-        .join('\n');
-
-    // Вычисляем HMAC-SHA-256 подпись
-    const computedHash = crypto
+    // Вычисляем хеш
+    const hash = crypto
         .createHmac('sha256', secretKey)
         .update(dataCheckString)
         .digest('hex');
 
-    // Сравниваем вычисленную подпись с полученной
-    return computedHash === hash;
+    // Сравниваем вычисленный хеш с полученным
+    return hash === telegramData.hash;
 }
 
 export async function POST(request: NextRequest) {
     try {
         // Получаем данные пользователя Telegram из запроса
-        const userData: TelegramUser = await request.json();
+        const telegramData: TelegramUser = await request.json();
 
-        // Проверяем, что данные не устарели (не старше 24 часов)
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (currentTime - userData.auth_date > 86400) {
+        // Проверяем подлинность данных
+        if (!verifyTelegramData(telegramData)) {
             return NextResponse.json(
-                { message: 'Данные авторизации устарели' },
+                { message: 'Недействительные данные авторизации Telegram' },
                 { status: 401 }
             );
         }
 
-        // Отделяем хеш от остальных данных
-        const { hash, ...dataWithoutHash } = userData;
-
-        // Проверяем подпись данных
-        if (!verifyTelegramData(dataWithoutHash, hash)) {
+        // Проверяем, не устарели ли данные (не старше 24 часов)
+        const authDate = telegramData.auth_date;
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (currentTime - authDate > 86400) {
             return NextResponse.json(
-                { message: 'Недействительная подпись данных' },
+                { message: 'Данные авторизации Telegram устарели' },
                 { status: 401 }
             );
         }
@@ -76,7 +67,7 @@ export async function POST(request: NextRequest) {
         const { data: existingTelegramUser } = await supabase
             .from('telegram_users')
             .select('*, users(*)')
-            .eq('telegram_id', userData.id)
+            .eq('telegram_id', telegramData.id)
             .single();
 
         let userId: string;
@@ -89,14 +80,14 @@ export async function POST(request: NextRequest) {
             await supabase
                 .from('telegram_users')
                 .update({
-                    username: userData.username,
-                    first_name: userData.first_name,
-                    last_name: userData.last_name,
-                    photo_url: userData.photo_url,
-                    auth_date: new Date(userData.auth_date * 1000).toISOString(),
+                    username: telegramData.username,
+                    first_name: telegramData.first_name,
+                    last_name: telegramData.last_name,
+                    photo_url: telegramData.photo_url,
+                    auth_date: new Date(telegramData.auth_date * 1000).toISOString(),
                     updated_at: new Date().toISOString()
                 })
-                .eq('telegram_id', userData.id);
+                .eq('telegram_id', telegramData.id);
 
             // Получаем данные пользователя для создания JWT
             const { data: userInfo } = await supabase
@@ -117,7 +108,7 @@ export async function POST(request: NextRequest) {
         } else {
             // Если пользователя нет, создаем нового пользователя
             // Генерируем случайный email и пароль для Supabase Auth
-            const randomEmail = `telegram_${userData.id}_${Math.random().toString(36).substring(2)}@franema-rental.com`;
+            const randomEmail = `telegram_${telegramData.id}_${Math.random().toString(36).substring(2)}@franema-rental.com`;
             const randomPassword = crypto.randomBytes(32).toString('hex');
 
             // Создаем нового пользователя в Supabase Auth
@@ -126,10 +117,10 @@ export async function POST(request: NextRequest) {
                 password: randomPassword,
                 email_confirm: true,
                 user_metadata: {
-                    telegram_id: userData.id,
-                    first_name: userData.first_name,
-                    last_name: userData.last_name,
-                    username: userData.username
+                    telegram_id: telegramData.id,
+                    first_name: telegramData.first_name,
+                    last_name: telegramData.last_name,
+                    username: telegramData.username
                 }
             });
 
@@ -143,7 +134,7 @@ export async function POST(request: NextRequest) {
             await supabase.from('users').insert({
                 id: userId,
                 email: randomEmail,
-                full_name: `${userData.first_name} ${userData.last_name || ''}`.trim(),
+                full_name: `${telegramData.first_name} ${telegramData.last_name || ''}`.trim(),
                 role: 'user',
                 is_verified: true,
                 created_at: new Date().toISOString(),
@@ -152,13 +143,13 @@ export async function POST(request: NextRequest) {
 
             // Создаем запись в таблице telegram_users
             await supabase.from('telegram_users').insert({
-                telegram_id: userData.id,
+                telegram_id: telegramData.id,
                 user_id: userId,
-                username: userData.username,
-                first_name: userData.first_name,
-                last_name: userData.last_name,
-                photo_url: userData.photo_url,
-                auth_date: new Date(userData.auth_date * 1000).toISOString(),
+                username: telegramData.username,
+                first_name: telegramData.first_name,
+                last_name: telegramData.last_name,
+                photo_url: telegramData.photo_url,
+                auth_date: new Date(telegramData.auth_date * 1000).toISOString(),
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             });
