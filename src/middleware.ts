@@ -23,7 +23,6 @@ export async function middleware(request: NextRequest) {
     // Маршруты только для гостей (неаутентифицированных пользователей)
     const guestRoutes = [
         '/auth/login',
-        '/auth/register',
     ];
 
     // Проверка, является ли текущий маршрут защищенным
@@ -46,6 +45,11 @@ export async function middleware(request: NextRequest) {
     // Если маршрут только для гостей и пользователь аутентифицирован, перенаправляем на главную страницу
     if (isGuestRoute && session) {
         return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // Перенаправляем со страницы регистрации на страницу входа
+    if (request.nextUrl.pathname.startsWith('/auth/register')) {
+        return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
     return response;
