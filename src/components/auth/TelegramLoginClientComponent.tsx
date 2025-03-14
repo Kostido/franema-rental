@@ -24,125 +24,150 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             return;
         }
 
-        // Удаляем символ @ из имени бота, если он присутствует
-        const cleanBotName = botName.startsWith('@') ? botName.substring(1) : botName;
+        // Удаляем символ @ и пробелы из имени бота
+        const cleanBotName = botName.replace(/^@/, '').trim();
 
         console.log(`Попытка #${loadAttempts + 1} инициализации Telegram Login Widget с именем бота:`, cleanBotName);
 
-        // Функция для инициализации виджета
-        const initWidget = () => {
+        // Функция для инициализации виджета непосредственным добавлением iframe
+        const initWidgetDirectly = () => {
             if (!containerRef.current) return;
+
+            // Очищаем контейнер
+            containerRef.current.innerHTML = '';
+
+            // Создаем iframe напрямую (это обходной путь, если скрипт не работает)
+            const iframe = document.createElement('iframe');
+            iframe.style.border = 'none';
+            iframe.scrolling = 'no';
+            iframe.frameBorder = '0';
+            iframe.allowFullscreen = true;
+            iframe.width = '280';
+            iframe.height = '40';
+
+            // Используем прямую ссылку на iframe
+            iframe.src = `https://oauth.telegram.org/embed/${cleanBotName}?size=large&userpic=true&radius=8&onauth=onTelegramAuth`;
+            containerRef.current.appendChild(iframe);
+
+            console.log('Виджет Telegram Login добавлен как iframe');
+        };
+
+        // Функция для инициализации виджета через официальный скрипт
+        const initWidgetWithScript = () => {
+            if (!containerRef.current) return;
+
+            // Определяем функцию обработки авторизации в глобальной области видимости
+            window.onTelegramAuth = (user: TelegramUser) => {
+                console.log('Telegram авторизация получена:', user);
+
+                // Отправляем данные на сервер для проверки и авторизации
+                fetch('/api/auth/telegram', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(user),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(error => {
+                                throw new Error(error.message || 'Ошибка авторизации через Telegram');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Ответ от сервера:', data);
+
+                        // Если авторизация успешна и получен JWT-токен
+                        if (data.token) {
+                            // Устанавливаем JWT-токен в localStorage
+                            localStorage.setItem('supabase.auth.token', JSON.stringify({
+                                access_token: data.token,
+                                token_type: 'bearer',
+                                expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 дней
+                            }));
+
+                            // Показываем уведомление об успешной авторизации
+                            alert('Вы успешно вошли через Telegram');
+
+                            // Перенаправляем пользователя
+                            router.push('/profile');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка авторизации через Telegram:', error);
+                        alert(error.message || 'Произошла ошибка при авторизации через Telegram');
+                    });
+            };
 
             try {
                 // Очищаем контейнер
                 containerRef.current.innerHTML = '';
 
-                // Создаем элемент-контейнер для виджета
-                const widgetContainer = document.createElement('div');
-                widgetContainer.id = 'telegram-login-container';
-                containerRef.current.appendChild(widgetContainer);
-
-                // Определяем функцию обработки авторизации в глобальной области видимости
-                window.onTelegramAuth = (user: TelegramUser) => {
-                    console.log('Telegram авторизация получена:', user);
-
-                    // Отправляем данные на сервер для проверки и авторизации
-                    fetch('/api/auth/telegram', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(user),
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(error => {
-                                    throw new Error(error.message || 'Ошибка авторизации через Telegram');
-                                });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('Ответ от сервера:', data);
-
-                            // Если авторизация успешна и получен JWT-токен
-                            if (data.token) {
-                                // Устанавливаем JWT-токен в localStorage
-                                localStorage.setItem('supabase.auth.token', JSON.stringify({
-                                    access_token: data.token,
-                                    token_type: 'bearer',
-                                    expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 дней
-                                }));
-
-                                // Показываем уведомление об успешной авторизации
-                                alert('Вы успешно вошли через Telegram');
-
-                                // Перенаправляем пользователя
-                                router.push('/profile');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Ошибка авторизации через Telegram:', error);
-                            alert(error.message || 'Произошла ошибка при авторизации через Telegram');
-                        });
-                };
+                // Добавляем div для виджета
+                const widgetDiv = document.createElement('div');
+                widgetDiv.id = 'telegram-login-' + cleanBotName;
+                containerRef.current.appendChild(widgetDiv);
 
                 // Создаем и добавляем скрипт для виджета Telegram
                 const script = document.createElement('script');
                 script.async = true;
                 script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                script.dataset.telegramLogin = cleanBotName; // Используем dataset для установки data-атрибутов
+
+                // Используем data-атрибуты для настройки виджета
+                script.dataset.telegramLogin = cleanBotName;
                 script.dataset.size = 'large';
                 script.dataset.radius = '8';
                 script.dataset.userpic = 'true';
                 script.dataset.onauth = 'onTelegramAuth(user)';
 
                 // Обработчик ошибок
-                script.onerror = (e) => {
-                    console.error('Ошибка загрузки скрипта Telegram:', e);
-                    setError('Не удалось загрузить виджет Telegram. Проверьте подключение к интернету и настройки бота.');
+                script.onerror = () => {
+                    console.error('Ошибка загрузки скрипта Telegram Login Widget');
 
-                    // Если меньше 3 попыток, попробуем загрузить снова через 2 секунды
-                    if (loadAttempts < 2) {
-                        setTimeout(() => {
-                            setLoadAttempts(prev => prev + 1);
-                        }, 2000);
-                    }
+                    // Если скрипт не загрузился, используем iframe напрямую
+                    initWidgetDirectly();
                 };
 
                 // Обработчик успешной загрузки
                 script.onload = () => {
-                    console.log('Скрипт Telegram Login Widget успешно загружен для бота:', cleanBotName);
+                    console.log('Скрипт Telegram Login Widget успешно загружен');
                 };
 
-                // Добавляем скрипт в DOM
-                document.head.appendChild(script);
-                console.log('Скрипт Telegram Login Widget добавлен в DOM для бота:', cleanBotName);
+                // Добавляем скрипт в контейнер
+                containerRef.current.appendChild(script);
 
-                // Прямая интеграция виджета через iframe как запасной вариант
-                if (loadAttempts > 0) {
-                    const iframe = document.createElement('iframe');
-                    iframe.src = `https://oauth.telegram.org/embed/${cleanBotName}?origin=${encodeURIComponent(window.location.origin)}&return_to=${encodeURIComponent(window.location.href)}`;
-                    iframe.frameBorder = '0';
-                    iframe.scrolling = 'no';
-                    iframe.width = '280';
-                    iframe.height = '40';
-                    iframe.style.border = 'none';
-
-                    widgetContainer.appendChild(iframe);
-                    console.log('Добавлен iframe для Telegram Login Widget');
-                }
+                console.log('Скрипт Telegram Login Widget добавлен в DOM');
             } catch (e) {
                 console.error('Ошибка при инициализации виджета Telegram:', e);
                 setError('Произошла ошибка при инициализации виджета Telegram.');
+
+                // В случае ошибки пробуем прямую инициализацию через iframe
+                initWidgetDirectly();
             }
         };
 
-        // Инициализируем виджет
-        initWidget();
+        // Инициализируем виджет с помощью официального скрипта
+        initWidgetWithScript();
+
+        // Устанавливаем таймер для проверки, загрузился ли виджет
+        const checkTimer = setTimeout(() => {
+            // Если контейнер существует и в нем нет iframe или кнопки входа
+            if (containerRef.current &&
+                !containerRef.current.querySelector('iframe') &&
+                !containerRef.current.querySelector('button')) {
+
+                console.log('Виджет не загрузился, пробуем прямую инициализацию');
+
+                // Если виджет не загрузился, пробуем прямую инициализацию
+                initWidgetDirectly();
+            }
+        }, 3000);
 
         // Очистка при размонтировании
         return () => {
+            clearTimeout(checkTimer);
             if (window.onTelegramAuth) {
                 window.onTelegramAuth = undefined;
             }
@@ -160,17 +185,18 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             {error ? (
                 <div className="text-red-500 text-sm p-2 border border-red-200 rounded bg-red-50">
                     {error}
-                    {loadAttempts < 3 && (
-                        <button
-                            className="ml-2 text-blue-500 underline"
-                            onClick={() => setLoadAttempts(prev => prev + 1)}
-                        >
-                            Попробовать снова
-                        </button>
-                    )}
+                    <button
+                        className="ml-2 text-blue-500 underline"
+                        onClick={() => {
+                            setError(null);
+                            setLoadAttempts(prev => prev + 1);
+                        }}
+                    >
+                        Попробовать снова
+                    </button>
                 </div>
             ) : (
-                <div ref={containerRef} className="flex justify-center min-h-[40px]">
+                <div ref={containerRef} className="flex justify-center items-center min-h-[40px]">
                     <div className="text-gray-400 text-sm">Загрузка виджета Telegram...</div>
                 </div>
             )}
