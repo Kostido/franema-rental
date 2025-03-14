@@ -1,49 +1,51 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import RegisterForm from '@/components/forms/RegisterForm';
+import { redirect } from 'next/navigation';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
     title: 'Регистрация | Franema Rental',
-    description: 'Зарегистрируйтесь в системе бронирования видеотехники',
+    description: 'Регистрация в системе бронирования видеотехники через Telegram',
 };
 
 export default function RegisterPage() {
+    // Перенаправляем на страницу входа, так как теперь используется только Telegram
+    redirect('/auth/login');
+
+    // Этот код не будет выполнен из-за перенаправления, но оставлен для типизации
     return (
         <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                <div className="flex justify-center">
+                    <div className="w-16 h-16 relative">
+                        <Image
+                            src="/logo.png"
+                            alt="Franema Rental Logo"
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
+                </div>
                 <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
                     Регистрация
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
-                    Уже есть аккаунт?{' '}
-                    <Link
-                        href="/auth/login"
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                        Войдите
-                    </Link>
+                    Регистрация доступна только через Telegram
                 </p>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                    <RegisterForm />
-
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="bg-white px-2 text-gray-500">Важная информация</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 text-sm text-gray-500">
-                            <p>
-                                После регистрации вам потребуется верифицировать аккаунт через Telegram для получения уведомлений о бронировании.
-                            </p>
-                        </div>
+                    <div className="text-center">
+                        <p className="text-gray-600 mb-4">
+                            Для регистрации и входа в систему используйте кнопку Telegram на странице входа
+                        </p>
+                        <Link
+                            href="/auth/login"
+                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            Перейти на страницу входа
+                        </Link>
                     </div>
                 </div>
             </div>
