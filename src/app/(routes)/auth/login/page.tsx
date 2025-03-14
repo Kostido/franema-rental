@@ -1,6 +1,13 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import LoginForm from '@/components/forms/LoginForm';
+import dynamic from 'next/dynamic';
+
+// Динамически импортируем компонент TelegramLoginWidget, чтобы избежать ошибок SSR
+const TelegramLoginWidget = dynamic(
+    () => import('@/components/auth/TelegramLoginWidget'),
+    { ssr: false }
+);
 
 export const metadata: Metadata = {
     title: 'Вход | Franema Rental',
@@ -8,6 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
+    // Получаем имя бота из переменных окружения
+    const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '';
+
     return (
         <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -36,11 +46,22 @@ export default function LoginPage() {
                                 <div className="w-full border-t border-gray-300" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="bg-white px-2 text-gray-500">Или</span>
+                                <span className="bg-white px-2 text-gray-500">Или войдите через</span>
                             </div>
                         </div>
 
-                        <div className="mt-6 grid grid-cols-1 gap-3">
+                        <div className="mt-6 flex flex-col items-center justify-center gap-4">
+                            {botName && (
+                                <div className="w-full flex justify-center">
+                                    <TelegramLoginWidget
+                                        botName={botName}
+                                        buttonSize="large"
+                                        cornerRadius={8}
+                                        showUserPhoto={true}
+                                    />
+                                </div>
+                            )}
+
                             <Link
                                 href="/auth/forgot-password"
                                 className="text-sm text-center text-indigo-600 hover:text-indigo-500"

@@ -1,9 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'react-hot-toast';
+import dynamic from 'next/dynamic';
+
+// Динамически импортируем компонент TelegramLoginWidget, чтобы избежать ошибок SSR
+const TelegramLoginWidget = dynamic(
+    () => import('@/components/auth/TelegramLoginWidget'),
+    { ssr: false }
+);
 
 interface TelegramVerificationProps {
     userId: string;
@@ -14,60 +20,30 @@ export default function TelegramVerification({ userId, isTelegramVerified }: Tel
     const [isLoading, setIsLoading] = useState(false);
     const supabase = createClient();
 
-    const handleVerification = async () => {
-        try {
-            setIsLoading(true);
+    // Получаем имя бота из переменных окружения
+    const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '';
 
-            // Открываем Telegram бота в новом окне
-            const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-            if (!botUsername) {
-                throw new Error('Telegram bot username is not configured');
-            }
-
-            window.open(`https://t.me/${botUsername}?start`, '_blank');
-
-            toast.success('Перейдите в Telegram для завершения верификации');
-        } catch (error) {
-            console.error('Error during Telegram verification:', error);
-            toast.error('Произошла ошибка при верификации через Telegram');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    if (isTelegramVerified) {
+        return null;
+    }
 
     return (
-        <div className="flex flex-col gap-4 p-4 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold">Верификация через Telegram</h3>
+        <div className="flex flex-col gap-4 p-6 bg-white rounded-lg shadow">
+            <h3 className="text-lg font-semibold">Подключение Telegram</h3>
 
-            {isTelegramVerified ? (
-                <div className="flex items-center gap-2 text-green-600">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                        />
-                    </svg>
-                    <span>Аккаунт верифицирован через Telegram</span>
+            <p className="text-gray-600">
+                Подключите ваш Telegram-аккаунт для быстрого входа и получения уведомлений о бронированиях.
+            </p>
+
+            {botName && (
+                <div className="flex justify-center mt-2">
+                    <TelegramLoginWidget
+                        botName={botName}
+                        buttonSize="large"
+                        cornerRadius={8}
+                        showUserPhoto={true}
+                    />
                 </div>
-            ) : (
-                <>
-                    <p className="text-gray-600">
-                        Для верификации вашего аккаунта через Telegram, нажмите кнопку ниже и следуйте инструкциям бота.
-                    </p>
-                    <Button
-                        onClick={handleVerification}
-                        disabled={isLoading}
-                        className="w-full"
-                    >
-                        {isLoading ? 'Загрузка...' : 'Верифицировать через Telegram'}
-                    </Button>
-                </>
             )}
         </div>
     );

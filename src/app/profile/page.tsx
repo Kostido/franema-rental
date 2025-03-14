@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import ProfileForm from '@/components/profile/ProfileForm';
 import TelegramVerification from '@/components/profile/TelegramVerification';
+import TelegramAccountInfo from '@/components/profile/TelegramAccountInfo';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
@@ -22,8 +23,15 @@ export default async function ProfilePage() {
     // Получаем данные пользователя из базы
     const { data: userData } = await supabase
         .from('users')
-        .select('*, telegram_users(*)')
+        .select('*')
         .eq('id', user.id)
+        .single();
+
+    // Получаем данные о подключенном Telegram-аккаунте
+    const { data: telegramUser } = await supabase
+        .from('telegram_users')
+        .select('*')
+        .eq('user_id', user.id)
         .single();
 
     return (
@@ -39,16 +47,29 @@ export default async function ProfilePage() {
                                 <label className="text-sm text-gray-600">Email</label>
                                 <p className="font-medium">{user.email}</p>
                             </div>
-                            {/* Добавьте здесь другие поля профиля */}
+                            {userData && (
+                                <div>
+                                    <label className="text-sm text-gray-600">Полное имя</label>
+                                    <p className="font-medium">{userData.full_name || 'Не указано'}</p>
+                                </div>
+                            )}
+                            <div>
+                                <label className="text-sm text-gray-600">Роль</label>
+                                <p className="font-medium capitalize">{userData?.role || 'user'}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="space-y-6">
-                    <TelegramVerification
-                        userId={user.id}
-                        isTelegramVerified={!!userData?.telegram_users}
-                    />
+                    {telegramUser ? (
+                        <TelegramAccountInfo telegramUser={telegramUser} />
+                    ) : (
+                        <TelegramVerification
+                            userId={user.id}
+                            isTelegramVerified={false}
+                        />
+                    )}
                 </div>
             </div>
         </div>
