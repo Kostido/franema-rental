@@ -24,17 +24,28 @@ export default function TelegramLoginButton({
 }: TelegramLoginButtonProps) {
     const [isMounted, setIsMounted] = useState(false);
 
+    // Отладочная информация
+    console.log('TelegramLoginButton - botName:', botName);
+
     // Используем useEffect для отображения компонента только на клиенте
     useEffect(() => {
         setIsMounted(true);
+        console.log('TelegramLoginButton - компонент смонтирован');
     }, []);
 
-    if (!isMounted || !botName) {
-        return null;
+    if (!isMounted) {
+        return <div className="text-center text-xs text-gray-500">Загрузка виджета Telegram...</div>;
+    }
+
+    if (!botName) {
+        return <div className="text-center text-red-500">Ошибка: имя бота не задано</div>;
     }
 
     return (
         <div className="w-full flex justify-center">
+            <div className="text-center text-xs text-gray-500 mb-2">
+                Загружаем виджет для бота: {botName}
+            </div>
             <TelegramLoginWidget
                 botName={botName}
                 buttonSize={buttonSize}

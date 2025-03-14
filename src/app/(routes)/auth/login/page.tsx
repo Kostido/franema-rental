@@ -12,6 +12,9 @@ export default function LoginPage() {
     // Получаем имя бота из переменных окружения
     const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '';
 
+    // Отладочная информация
+    console.log('NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:', process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME);
+
     return (
         <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -41,6 +44,11 @@ export default function LoginPage() {
                             <p className="mt-1 text-sm text-gray-500">
                                 Быстрый и безопасный вход без пароля
                             </p>
+                        </div>
+
+                        {/* Отладочная информация */}
+                        <div className="text-center text-xs text-gray-500 mb-2">
+                            Имя бота: {botName ? botName : 'Не задано'}
                         </div>
 
                         {botName ? (

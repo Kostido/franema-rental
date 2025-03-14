@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import Script from 'next/script';
 
 interface TelegramLoginWidgetProps {
     botName: string;
@@ -44,11 +43,18 @@ export default function TelegramLoginWidget({
     const router = useRouter();
     const supabase = createClient();
     const widgetRef = useRef<HTMLDivElement>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Отладочная информация
+    console.log('TelegramLoginWidget - botName:', botName);
 
     useEffect(() => {
         // Определяем функцию обработки авторизации
         window.onTelegramAuth = async (user: TelegramUser) => {
             try {
+                console.log('Telegram авторизация получена:', user);
+
                 // Отправляем данные на сервер для проверки и авторизации
                 const response = await fetch('/api/auth/telegram', {
                     method: 'POST',
@@ -64,6 +70,7 @@ export default function TelegramLoginWidget({
                 }
 
                 const data = await response.json();
+                console.log('Ответ от сервера:', data);
 
                 // Если авторизация успешна и получен JWT-токен
                 if (data.token) {
@@ -97,33 +104,55 @@ export default function TelegramLoginWidget({
 
         // Создаем скрипт для виджета Telegram, если он еще не был добавлен
         if (widgetRef.current && widgetRef.current.childElementCount === 0) {
-            const script = document.createElement('script');
-            script.src = 'https://telegram.org/js/telegram-widget.js?22';
-            script.setAttribute('data-telegram-login', botName);
-            script.setAttribute('data-size', buttonSize);
+            try {
+                console.log('Создаем скрипт для виджета Telegram');
+                setIsLoading(true);
 
-            if (cornerRadius !== undefined) {
-                script.setAttribute('data-radius', cornerRadius.toString());
+                const script = document.createElement('script');
+                script.src = 'https://telegram.org/js/telegram-widget.js?22';
+                script.setAttribute('data-telegram-login', botName);
+                script.setAttribute('data-size', buttonSize);
+
+                if (cornerRadius !== undefined) {
+                    script.setAttribute('data-radius', cornerRadius.toString());
+                }
+
+                if (showUserPhoto) {
+                    script.setAttribute('data-userpic', 'true');
+                } else {
+                    script.setAttribute('data-userpic', 'false');
+                }
+
+                if (requestAccess) {
+                    script.setAttribute('data-request-access', 'write');
+                }
+
+                script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+
+                if (redirectUrl) {
+                    script.setAttribute('data-auth-url', redirectUrl);
+                }
+
+                script.async = true;
+
+                // Обработчики событий для скрипта
+                script.onload = () => {
+                    console.log('Скрипт Telegram виджета загружен успешно');
+                    setIsLoading(false);
+                };
+
+                script.onerror = (e) => {
+                    console.error('Ошибка загрузки скрипта Telegram виджета:', e);
+                    setError('Не удалось загрузить виджет Telegram');
+                    setIsLoading(false);
+                };
+
+                widgetRef.current.appendChild(script);
+            } catch (e) {
+                console.error('Ошибка при создании скрипта:', e);
+                setError('Ошибка при инициализации виджета Telegram');
+                setIsLoading(false);
             }
-
-            if (showUserPhoto) {
-                script.setAttribute('data-userpic', 'true');
-            } else {
-                script.setAttribute('data-userpic', 'false');
-            }
-
-            if (requestAccess) {
-                script.setAttribute('data-request-access', 'write');
-            }
-
-            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-
-            if (redirectUrl) {
-                script.setAttribute('data-auth-url', redirectUrl);
-            }
-
-            script.async = true;
-            widgetRef.current.appendChild(script);
         }
 
         return () => {
@@ -135,8 +164,12 @@ export default function TelegramLoginWidget({
     }, [botName, buttonSize, cornerRadius, showUserPhoto, requestAccess, redirectUrl, onAuth, router, supabase]);
 
     return (
-        <div className="telegram-login-widget" ref={widgetRef}>
-            {/* Здесь будет отображаться виджет Telegram Login */}
+        <div className="w-full flex flex-col items-center">
+            {isLoading && <div className="text-xs text-gray-500 mb-2">Загрузка виджета...</div>}
+            {error && <div className="text-xs text-red-500 mb-2">{error}</div>}
+            <div className="telegram-login-widget" ref={widgetRef}>
+                {/* Здесь будет отображаться виджет Telegram Login */}
+            </div>
         </div>
     );
 } 
