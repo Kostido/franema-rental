@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         }
 
         const update: TelegramUpdate = await request.json();
-        const supabase = createClient();
+        const supabase = await createClient();
 
         // Обработка команды /start
         if (update.message?.text === '/start') {

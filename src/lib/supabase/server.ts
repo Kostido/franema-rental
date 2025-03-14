@@ -91,10 +91,10 @@ export async function createServiceRoleSupabaseClient() {
     );
 }
 
-export function createClient() {
-    const cookieStore = cookies();
+export async function createClient() {
+    const cookieStore = await cookies();
 
-    return createServerClient(
+    return createServerClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -111,11 +111,45 @@ export function createClient() {
                 },
                 remove(name: string, options: any) {
                     try {
-                        cookieStore.set({ name, value: '', ...options });
+                        cookieStore.delete(name);
                     } catch (error) {
                         // Handle cookie errors
                     }
                 },
+            },
+        }
+    );
+}
+
+export async function createServiceRoleClient() {
+    const cookieStore = await cookies();
+
+    return createServerClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value;
+                },
+                set(name: string, value: string, options: any) {
+                    try {
+                        cookieStore.set({ name, value, ...options });
+                    } catch (error) {
+                        // Handle cookie errors
+                    }
+                },
+                remove(name: string, options: any) {
+                    try {
+                        cookieStore.delete(name);
+                    } catch (error) {
+                        // Handle cookie errors
+                    }
+                },
+            },
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
             },
         }
     );

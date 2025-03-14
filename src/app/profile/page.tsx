@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import ProfileForm from '@/components/profile/ProfileForm';
 import TelegramVerification from '@/components/profile/TelegramVerification';
 import { redirect } from 'next/navigation';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export const metadata: Metadata = {
     title: 'Профиль | Franema Rental',
@@ -10,11 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createClient();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         redirect('/auth');
