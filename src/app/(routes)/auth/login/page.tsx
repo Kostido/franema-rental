@@ -1,3 +1,5 @@
+'use client';
+
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,10 +11,11 @@ const TelegramLoginClientComponent = dynamic(
     { ssr: false }
 );
 
-export const metadata: Metadata = {
-    title: 'Вход | Franema Rental',
-    description: 'Войдите в систему бронирования видеотехники через Telegram',
-};
+// Метаданные теперь должны быть определены в layout.tsx
+// export const metadata: Metadata = {
+//     title: 'Вход | Franema Rental',
+//     description: 'Войдите в систему бронирования видеотехники через Telegram',
+// };
 
 export default function LoginPage() {
     // Получаем имя бота из переменных окружения
