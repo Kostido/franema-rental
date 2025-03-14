@@ -105,7 +105,7 @@ export default function TelegramLoginWidget({
         // Создаем скрипт для виджета Telegram, если он еще не был добавлен
         if (widgetRef.current && widgetRef.current.childElementCount === 0) {
             try {
-                console.log('Создаем скрипт для виджета Telegram');
+                console.log('Создаем скрипт для виджета Telegram для бота:', botName);
                 setIsLoading(true);
 
                 const script = document.createElement('script');

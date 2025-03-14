@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Telegram Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .widget-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Тест виджета Telegram Login</h1>
+        <p>Эта страница предназначена для тестирования виджета Telegram Login.</p>
+
+        <div class="widget-container">
+            <h2>Виджет Telegram Login</h2>
+            <div id="telegram-login-widget"></div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для обработки авторизации через Telegram
+        function onTelegramAuth(user) {
+            console.log('Telegram авторизация получена:', user);
+            alert('Авторизация через Telegram успешна: ' + JSON.stringify(user));
+        }
+
+        // Создаем скрипт для виджета Telegram
+        window.addEventListener('DOMContentLoaded', () => {
+            const widgetContainer = document.getElementById('telegram-login-widget');
+            const botName = 'franema_rental_bot';
+
+            const script = document.createElement('script');
+            script.src = 'https://telegram.org/js/telegram-widget.js?22';
+            script.setAttribute('data-telegram-login', botName);
+            script.setAttribute('data-size', 'large');
+            script.setAttribute('data-radius', '8');
+            script.setAttribute('data-userpic', 'true');
+            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+            script.async = true;
+
+            widgetContainer.appendChild(script);
+        });
+    </script>
+</body>
+
+</html>
