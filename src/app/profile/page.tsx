@@ -10,43 +10,45 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-    // Получаем данные пользователя из сессии
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServerSupabaseClient();
 
-    // Получаем текущего пользователя
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
-        redirect('/auth/login?callbackUrl=/profile');
+    if (!user) {
+        redirect('/auth');
     }
 
-    // Получаем данные профиля
-    const { data: profile, error } = await supabase
+    // Получаем данные пользователя из базы
+    const { data: userData } = await supabase
         .from('users')
-        .select('*')
-        .eq('id', session.user.id)
+        .select('*, telegram_users(*)')
+        .eq('id', user.id)
         .single();
-
-    if (error || !profile) {
-        console.error('Ошибка при получении профиля:', error);
-        redirect('/auth/login?callbackUrl=/profile');
-    }
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Профиль пользователя</h1>
+            <h1 className="text-2xl font-bold mb-8">Профиль пользователя</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                    <h2 className="text-2xl font-semibold mb-6">Личные данные</h2>
-                    <ProfileForm initialData={profile} />
+                <div className="space-y-6">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h2 className="text-xl font-semibold mb-4">Основная информация</h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm text-gray-600">Email</label>
+                                <p className="font-medium">{user.email}</p>
+                            </div>
+                            {/* Добавьте здесь другие поля профиля */}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                    <h2 className="text-2xl font-semibold mb-6">Верификация Telegram</h2>
+                <div className="space-y-6">
                     <TelegramVerification
-                        isVerified={profile.is_verified}
-                        telegramId={profile.telegram_id}
+                        userId={user.id}
+                        isTelegramVerified={!!userData?.telegram_users}
                     />
                 </div>
             </div>
