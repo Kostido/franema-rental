@@ -1,13 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import LoginForm from '@/components/forms/LoginForm';
-import dynamic from 'next/dynamic';
-
-// Динамически импортируем компонент TelegramLoginWidget, чтобы избежать ошибок SSR
-const TelegramLoginWidget = dynamic(
-    () => import('@/components/auth/TelegramLoginWidget'),
-    { ssr: false }
-);
+import TelegramLoginButton from '@/components/auth/TelegramLoginButton';
 
 export const metadata: Metadata = {
     title: 'Вход | Franema Rental',
@@ -51,16 +45,7 @@ export default function LoginPage() {
                         </div>
 
                         <div className="mt-6 flex flex-col items-center justify-center gap-4">
-                            {botName && (
-                                <div className="w-full flex justify-center">
-                                    <TelegramLoginWidget
-                                        botName={botName}
-                                        buttonSize="large"
-                                        cornerRadius={8}
-                                        showUserPhoto={true}
-                                    />
-                                </div>
-                            )}
+                            {botName && <TelegramLoginButton botName={botName} />}
 
                             <Link
                                 href="/auth/forgot-password"

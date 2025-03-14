@@ -3,13 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'react-hot-toast';
-import dynamic from 'next/dynamic';
-
-// Динамически импортируем компонент TelegramLoginWidget, чтобы избежать ошибок SSR
-const TelegramLoginWidget = dynamic(
-    () => import('@/components/auth/TelegramLoginWidget'),
-    { ssr: false }
-);
+import TelegramLoginButton from '@/components/auth/TelegramLoginButton';
 
 interface TelegramVerificationProps {
     userId: string;
@@ -37,12 +31,7 @@ export default function TelegramVerification({ userId, isTelegramVerified }: Tel
 
             {botName && (
                 <div className="flex justify-center mt-2">
-                    <TelegramLoginWidget
-                        botName={botName}
-                        buttonSize="large"
-                        cornerRadius={8}
-                        showUserPhoto={true}
-                    />
+                    <TelegramLoginButton botName={botName} />
                 </div>
             )}
         </div>
