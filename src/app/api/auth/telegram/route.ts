@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 // Интерфейс для данных пользователя Telegram
 interface TelegramUser {
@@ -79,7 +80,6 @@ export async function POST(request: NextRequest) {
             .single();
 
         let userId: string;
-        let session;
 
         if (existingTelegramUser) {
             // Если пользователь существует, обновляем его данные
@@ -98,13 +98,22 @@ export async function POST(request: NextRequest) {
                 })
                 .eq('telegram_id', userData.id);
 
-            // Получаем существующую сессию пользователя
-            const { data: sessionData } = await supabase.auth.admin.createSession({
-                user_id: userId,
-                expires_in: 60 * 60 * 24 * 7 // 7 дней
-            });
+            // Получаем данные пользователя для создания JWT
+            const { data: userInfo } = await supabase
+                .from('users')
+                .select('email, role')
+                .eq('id', userId)
+                .single();
 
-            session = sessionData;
+            if (!userInfo) {
+                throw new Error('Пользователь не найден');
+            }
+
+            // Создаем JWT-токен для пользователя
+            const jwt = createJWT(userId, userInfo.email, userInfo.role);
+
+            // Возвращаем JWT-токен
+            return NextResponse.json({ token: jwt });
         } else {
             // Если пользователя нет, создаем нового пользователя
             // Генерируем случайный email и пароль для Supabase Auth
@@ -154,17 +163,23 @@ export async function POST(request: NextRequest) {
                 updated_at: new Date().toISOString()
             });
 
-            // Создаем сессию для нового пользователя
-            const { data: sessionData } = await supabase.auth.admin.createSession({
-                user_id: userId,
-                expires_in: 60 * 60 * 24 * 7 // 7 дней
-            });
+            // Получаем данные пользователя для создания JWT
+            const { data: userInfo } = await supabase
+                .from('users')
+                .select('email, role')
+                .eq('id', userId)
+                .single();
 
-            session = sessionData;
+            if (!userInfo) {
+                throw new Error('Пользователь не найден');
+            }
+
+            // Создаем JWT-токен для пользователя
+            const jwt = createJWT(userId, userInfo.email, userInfo.role);
+
+            // Возвращаем JWT-токен
+            return NextResponse.json({ token: jwt });
         }
-
-        // Возвращаем данные сессии
-        return NextResponse.json({ session });
     } catch (error: any) {
         console.error('Ошибка авторизации через Telegram:', error);
         return NextResponse.json(
@@ -172,4 +187,23 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+// Функция для создания JWT-токена
+function createJWT(userId: string, email: string, role: string): string {
+    const payload = {
+        sub: userId,
+        email,
+        role,
+        aud: 'authenticated',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 дней
+    };
+
+    const secret = process.env.SUPABASE_JWT_SECRET || '';
+    if (!secret) {
+        throw new Error('SUPABASE_JWT_SECRET не настроен');
+    }
+
+    return jwt.sign(payload, secret);
 } 

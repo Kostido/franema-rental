@@ -65,10 +65,17 @@ export default function TelegramLoginWidget({
 
                 const data = await response.json();
 
-                // Если авторизация успешна, обновляем сессию
-                if (data.session) {
-                    // Обновляем сессию в Supabase
-                    await supabase.auth.setSession(data.session);
+                // Если авторизация успешна и получен JWT-токен
+                if (data.token) {
+                    // Устанавливаем JWT-токен в localStorage
+                    localStorage.setItem('supabase.auth.token', JSON.stringify({
+                        access_token: data.token,
+                        token_type: 'bearer',
+                        expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 дней
+                    }));
+
+                    // Обновляем состояние авторизации в Supabase
+                    await supabase.auth.refreshSession();
 
                     // Показываем уведомление об успешной авторизации
                     toast.success('Вы успешно вошли через Telegram');

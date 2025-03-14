@@ -29,6 +29,7 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "date-fns": "^3.3.1",
+    "jsonwebtoken": "9.0.2",
     "next": "15.2.2",
     "postcss": "^8.4.35",
     "qrcode.react": "4.2.0",
@@ -43,6 +44,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "9.0.9",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.2.2",
     "eslint-config-prettier": "^9.1.0",
