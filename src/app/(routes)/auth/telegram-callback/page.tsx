@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
-export default function TelegramCallbackPage() {
+// Компонент с логикой обработки параметров
+function TelegramCallbackHandler() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
@@ -108,5 +109,31 @@ export default function TelegramCallbackPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+// Состояние загрузки для Suspense
+function TelegramCallbackFallback() {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+            <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md text-center">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Инициализация...</h1>
+                </div>
+                <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-600">Подготовка страницы...</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Основной компонент страницы с Suspense
+export default function TelegramCallbackPage() {
+    return (
+        <Suspense fallback={<TelegramCallbackFallback />}>
+            <TelegramCallbackHandler />
+        </Suspense>
     );
 } 
