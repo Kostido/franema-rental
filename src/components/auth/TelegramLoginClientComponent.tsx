@@ -46,8 +46,34 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             iframe.height = '40';
 
             // Используем прямую ссылку на iframe
-            iframe.src = `https://oauth.telegram.org/embed/${cleanBotName}?size=large&userpic=true&radius=8&onauth=onTelegramAuth`;
+            const currentOrigin = window.location.origin;
+            console.log('Устанавливаем origin для iframe:', currentOrigin);
+
+            iframe.src = `https://oauth.telegram.org/embed/${cleanBotName}?size=large&userpic=true&radius=8&onauth=onTelegramAuth&origin=${encodeURIComponent(currentOrigin)}`;
             containerRef.current.appendChild(iframe);
+
+            // Добавляем обработчик для iframe, чтобы отловить ошибки
+            iframe.onerror = () => {
+                console.error('Ошибка загрузки iframe для Telegram Login');
+                setError('Не удалось загрузить виджет входа через Telegram');
+            };
+
+            // Добавляем обработчик загрузки для проверки контента
+            iframe.onload = () => {
+                try {
+                    // Проверяем, содержит ли iframe ошибку "Origin required"
+                    setTimeout(() => {
+                        if (iframe.contentDocument &&
+                            iframe.contentDocument.body.textContent &&
+                            iframe.contentDocument.body.textContent.includes('Origin required')) {
+                            setError(`Ошибка Origin: Домен ${currentOrigin} не добавлен в список разрешенных доменов в BotFather`);
+                        }
+                    }, 500);
+                } catch (e) {
+                    // Ошибка доступа к contentDocument может возникнуть из-за политики Same-Origin
+                    console.log('Невозможно проверить содержимое iframe из-за ограничений Same-Origin');
+                }
+            };
 
             console.log('Виджет Telegram Login добавлен как iframe');
         };
@@ -122,12 +148,29 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
                 script.dataset.userpic = 'true';
                 script.dataset.onauth = 'onTelegramAuth(user)';
 
+                // Добавляем атрибут origin, который необходим для работы виджета
+                const currentOrigin = window.location.origin;
+                script.dataset.origin = currentOrigin;
+
+                console.log('Установлен origin для Telegram Login Widget:', currentOrigin);
+
                 // Обработчик ошибок
                 script.onerror = () => {
                     console.error('Ошибка загрузки скрипта Telegram Login Widget');
 
-                    // Если скрипт не загрузился, используем iframe напрямую
-                    initWidgetDirectly();
+                    // Проверяем, есть ли на странице элемент с текстом "Origin required"
+                    setTimeout(() => {
+                        // Проверяем содержимое контейнера
+                        if (containerRef.current && containerRef.current.textContent &&
+                            containerRef.current.textContent.includes('Origin required')) {
+                            setError(`Ошибка Origin: Домен ${window.location.origin} не добавлен в список разрешенных доменов в BotFather`);
+                        } else {
+                            setError('Ошибка загрузки виджета Telegram Login. Проверьте консоль для деталей.');
+                        }
+
+                        // Если скрипт не загрузился, используем iframe напрямую
+                        initWidgetDirectly();
+                    }, 1000); // Даем время на отрисовку ошибки
                 };
 
                 // Обработчик успешной загрузки
@@ -183,10 +226,30 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
     return (
         <div className="telegram-login-container w-full">
             {error ? (
-                <div className="text-red-500 text-sm p-2 border border-red-200 rounded bg-red-50">
-                    {error}
+                <div className="text-red-500 text-sm p-4 border border-red-200 rounded bg-red-50">
+                    <p className="font-medium mb-2">{error}</p>
+
+                    {error.includes('Origin') && (
+                        <div className="text-xs text-gray-700 mb-2">
+                            <p className="mb-1 font-semibold">Возможные причины:</p>
+                            <ol className="list-decimal list-inside">
+                                <li>Домен не добавлен в список разрешенных в BotFather</li>
+                                <li>Неправильно настроены переменные окружения</li>
+                            </ol>
+
+                            <p className="mt-2 font-semibold">Решение:</p>
+                            <ol className="list-decimal list-inside">
+                                <li>Откройте BotFather в Telegram</li>
+                                <li>Отправьте команду /setdomain</li>
+                                <li>Выберите вашего бота</li>
+                                <li>Добавьте текущий домен: {window.location.origin}</li>
+                                <li>Для локальной разработки добавьте localhost</li>
+                            </ol>
+                        </div>
+                    )}
+
                     <button
-                        className="ml-2 text-blue-500 underline"
+                        className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                         onClick={() => {
                             setError(null);
                             setLoadAttempts(prev => prev + 1);
