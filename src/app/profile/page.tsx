@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-    const supabase = createServerSupabaseClient();
+    // Получаем данные пользователя из сессии
+    const supabase = await createServerSupabaseClient();
 
     // Получаем текущего пользователя
     const { data: { session } } = await supabase.auth.getSession();

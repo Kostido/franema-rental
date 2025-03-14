@@ -65,7 +65,7 @@ export function useUser() {
         fetchUser();
 
         // Подписываемся на изменения аутентификации
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
             if (session) {
                 fetchUser();
             } else {

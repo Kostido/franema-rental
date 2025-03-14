@@ -21,7 +21,7 @@ export const GET = withAuth(async (req: NextRequest, user) => {
         const limit = parseInt(searchParams.get('limit') || '50');
         const offset = parseInt(searchParams.get('offset') || '0');
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Определяем, является ли пользователь администратором или менеджером
         const isAdminOrManager = user.role === 'ADMIN' || user.role === 'MANAGER';
@@ -114,7 +114,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
             return validationErrorResponse('Дата окончания должна быть позже даты начала');
         }
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Проверяем, существует ли оборудование
         const { data: equipment, error: equipmentError } = await supabase

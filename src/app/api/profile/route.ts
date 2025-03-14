@@ -38,7 +38,7 @@ export const PATCH = withAuth(async (req: NextRequest, user) => {
             return validationErrorResponse('Вы не можете напрямую изменить свой Telegram ID');
         }
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Если пользователь меняет email, нужно обновить его и в auth.users
         if (body.email && body.email !== user.email) {

@@ -25,7 +25,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
             return validationErrorResponse('Ваш аккаунт уже верифицирован');
         }
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Генерируем код верификации
         const verificationCode = generateVerificationCode();
@@ -70,7 +70,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
  */
 export const GET = withAuth(async (req: NextRequest, user) => {
     try {
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Получаем текущий код верификации пользователя
         const { data, error } = await supabase

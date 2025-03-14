@@ -1,5 +1,3 @@
-import { BookingStatus, EquipmentCategory, UserRole } from './index';
-
 export type Json =
     | string
     | number

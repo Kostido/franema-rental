@@ -98,7 +98,7 @@ export default function TelegramVerification({ isVerified, telegramId }: Telegra
 
     // Создание ссылки на Telegram бота с кодом верификации
     const getTelegramLink = () => {
-        if (!botUsername || !verificationCode) return null;
+        if (!botUsername || !verificationCode) return '';
 
         return `https://t.me/${botUsername}?start=${verificationCode}`;
     };

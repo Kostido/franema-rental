@@ -33,14 +33,14 @@ async function handleStartCommand(text: string, telegramId: number): Promise<{ s
     }
 
     const verificationCode = match[1];
-    const supabase = createServiceRoleSupabaseClient();
+    const supabase = await createServiceRoleSupabaseClient();
 
     // Ищем код верификации в базе данных
     const { data: verification, error: verificationError } = await supabase
         .from('telegram_verifications')
         .select('*')
-        .eq('verification_code', verificationCode)
-        .eq('is_verified', false)
+        .eq('verification_code', verificationCode as any)
+        .eq('is_verified', false as any)
         .single();
 
     if (verificationError || !verification) {
@@ -50,8 +50,11 @@ async function handleStartCommand(text: string, telegramId: number): Promise<{ s
         };
     }
 
+    // Приводим verification к типу с нужными полями
+    const typedVerification = verification as any;
+
     // Проверяем, не истек ли срок действия кода
-    const expiresAt = new Date(verification.expires_at);
+    const expiresAt = new Date(typedVerification.expires_at);
     const now = new Date();
 
     if (expiresAt < now) {
@@ -67,8 +70,8 @@ async function handleStartCommand(text: string, telegramId: number): Promise<{ s
         .update({
             is_verified: true,
             telegram_id: telegramId.toString(),
-        })
-        .eq('id', verification.id);
+        } as any)
+        .eq('id', typedVerification.id);
 
     if (updateVerificationError) {
         console.error('Ошибка при обновлении верификации:', updateVerificationError);
@@ -84,8 +87,8 @@ async function handleStartCommand(text: string, telegramId: number): Promise<{ s
         .update({
             telegram_id: telegramId.toString(),
             is_verified: true,
-        })
-        .eq('id', verification.user_id);
+        } as any)
+        .eq('id', typedVerification.user_id);
 
     if (updateUserError) {
         console.error('Ошибка при обновлении пользователя:', updateUserError);

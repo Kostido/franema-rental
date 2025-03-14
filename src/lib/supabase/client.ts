@@ -1,11 +1,5 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/types/supabase';
 import { createBrowserClient } from '@supabase/ssr';
-
-// Клиент для использования в клиентских компонентах
-export const createClient = () => {
-    return createClientComponentClient<Database>();
-};
 
 /**
  * Создает клиентский Supabase клиент для использования в браузере
@@ -16,4 +10,9 @@ export function createClientSupabaseClient() {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-} 
+}
+
+// Для обратной совместимости
+export const createClient = () => {
+    return createClientSupabaseClient();
+}; 

@@ -8,7 +8,7 @@ import { UserRole } from '@/types/supabase';
  * @returns Объект с данными пользователя или null, если пользователь не авторизован
  */
 export async function getCurrentUser() {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {

@@ -10,13 +10,18 @@ import { BookingStatus } from '@/types/supabase';
  */
 export const GET = withAuth(async (
     req: NextRequest,
-    user,
-    { params }: { params: { id: string } }
+    user
 ) => {
     try {
-        const { id } = params;
+        // Извлекаем id из URL
+        const url = new URL(req.url);
+        const id = url.pathname.split('/').pop();
 
-        const supabase = createServerSupabaseClient();
+        if (!id) {
+            return notFoundResponse('Бронирование');
+        }
+
+        const supabase = await createServerSupabaseClient();
 
         // Получаем бронирование по ID
         const { data, error } = await supabase
@@ -56,14 +61,20 @@ export const GET = withAuth(async (
  */
 export const PATCH = withAuth(async (
     req: NextRequest,
-    user,
-    { params }: { params: { id: string } }
+    user
 ) => {
     try {
-        const { id } = params;
+        // Извлекаем id из URL
+        const url = new URL(req.url);
+        const id = url.pathname.split('/').pop();
+
+        if (!id) {
+            return notFoundResponse('Бронирование');
+        }
+
         const body = await req.json();
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Получаем текущее бронирование
         const { data: booking, error: bookingError } = await supabase
@@ -187,13 +198,18 @@ export const PATCH = withAuth(async (
  */
 export const DELETE = withAuth(async (
     req: NextRequest,
-    user,
-    { params }: { params: { id: string } }
+    user
 ) => {
     try {
-        const { id } = params;
+        // Извлекаем id из URL
+        const url = new URL(req.url);
+        const id = url.pathname.split('/').pop();
 
-        const supabase = createServerSupabaseClient();
+        if (!id) {
+            return notFoundResponse('Бронирование');
+        }
+
+        const supabase = await createServerSupabaseClient();
 
         // Получаем текущее бронирование
         const { data: booking, error: bookingError } = await supabase

@@ -9,13 +9,18 @@ import { EquipmentCategory } from '@/types/supabase';
  * Получение информации о конкретном оборудовании
  */
 export async function GET(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+    req: NextRequest
 ) {
     try {
-        const { id } = params;
+        // Извлекаем id из URL
+        const url = new URL(req.url);
+        const id = url.pathname.split('/').pop();
 
-        const supabase = createServerSupabaseClient();
+        if (!id) {
+            return notFoundResponse('Оборудование');
+        }
+
+        const supabase = await createServerSupabaseClient();
 
         // Получаем оборудование по ID
         const { data, error } = await supabase
@@ -54,11 +59,17 @@ export async function GET(
  */
 export const PATCH = withAdminOrManager(async (
     req: NextRequest,
-    _user,
-    { params }: { params: { id: string } }
+    _user
 ) => {
     try {
-        const { id } = params;
+        // Извлекаем id из URL
+        const url = new URL(req.url);
+        const id = url.pathname.split('/').pop();
+
+        if (!id) {
+            return notFoundResponse('Оборудование');
+        }
+
         const body = await req.json();
 
         // Проверяем, что категория допустима, если она указана
@@ -72,7 +83,7 @@ export const PATCH = withAdminOrManager(async (
             }
         }
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Проверяем, существует ли оборудование
         const { data: existingEquipment, error: checkError } = await supabase
@@ -123,13 +134,18 @@ export const PATCH = withAdminOrManager(async (
  */
 export const DELETE = withAdminOrManager(async (
     req: NextRequest,
-    _user,
-    { params }: { params: { id: string } }
+    _user
 ) => {
     try {
-        const { id } = params;
+        // Извлекаем id из URL
+        const url = new URL(req.url);
+        const id = url.pathname.split('/').pop();
 
-        const supabase = createServerSupabaseClient();
+        if (!id) {
+            return notFoundResponse('Оборудование');
+        }
+
+        const supabase = await createServerSupabaseClient();
 
         // Проверяем, существует ли оборудование
         const { data: existingEquipment, error: checkError } = await supabase

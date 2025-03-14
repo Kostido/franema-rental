@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '50');
         const offset = parseInt(searchParams.get('offset') || '0');
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         let query = supabase
             .from('equipment')
@@ -80,7 +80,7 @@ export const POST = withAdminOrManager(async (req: NextRequest) => {
             return validationErrorResponse(`Категория должна быть одной из: ${validCategories.join(', ')}`);
         }
 
-        const supabase = createServerSupabaseClient();
+        const supabase = await createServerSupabaseClient();
 
         // Проверяем уникальность серийного номера
         const { data: existingEquipment } = await supabase
