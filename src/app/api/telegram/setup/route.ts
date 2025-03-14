@@ -1,32 +1,72 @@
 import { NextResponse } from 'next/server';
-import { TelegramBot } from '@/lib/telegram';
+import { TELEGRAM_CONFIG } from '@/lib/telegram/config';
 
 export async function GET() {
     try {
-        const bot = new TelegramBot();
         const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
 
         if (!appUrl) {
-            throw new Error('NEXT_PUBLIC_APP_URL is not set');
+            throw new Error('NEXT_PUBLIC_APP_URL не задан в переменных окружения');
         }
 
-        // Устанавливаем вебхук для Telegram бота
+        if (!botToken) {
+            throw new Error('TELEGRAM_BOT_TOKEN не задан в переменных окружения');
+        }
+
+        if (!webhookSecret) {
+            throw new Error('TELEGRAM_WEBHOOK_SECRET не задан в переменных окружения');
+        }
+
+        // Формируем URL вебхука
         const webhookUrl = `${appUrl}/api/telegram/webhook`;
-        const result = await bot.setWebhook(webhookUrl);
+        console.log('Настройка вебхука Telegram:', webhookUrl);
+
+        // Получаем текущие настройки вебхука
+        const infoResponse = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+        const webhookInfo = await infoResponse.json();
+
+        console.log('Текущие настройки вебхука:', webhookInfo);
+
+        // Устанавливаем новый вебхук
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: webhookUrl,
+                secret_token: webhookSecret,
+                allowed_updates: ['message', 'callback_query'],
+            }),
+        });
+
+        const result = await response.json();
 
         if (!result.ok) {
-            throw new Error(`Failed to set webhook: ${result.description}`);
+            throw new Error(`Ошибка установки вебхука: ${result.description}`);
         }
+
+        // Проверяем установку вебхука
+        const verifyResponse = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+        const verifyInfo = await verifyResponse.json();
 
         return NextResponse.json({
             ok: true,
-            message: 'Telegram webhook set successfully',
-            webhookUrl,
+            message: 'Вебхук Telegram успешно настроен',
+            webhook_url: webhookUrl,
+            previous_webhook: webhookInfo.result,
+            current_webhook: verifyInfo.result,
         });
-    } catch (error) {
-        console.error('Error setting up Telegram webhook:', error);
+    } catch (error: any) {
+        console.error('Ошибка настройки вебхука Telegram:', error);
         return NextResponse.json(
-            { error: 'Failed to set up Telegram webhook' },
+            {
+                ok: false,
+                error: error.message || 'Ошибка настройки вебхука Telegram',
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            },
             { status: 500 }
         );
     }

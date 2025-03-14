@@ -29,102 +29,45 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
 
         console.log(`Попытка #${loadAttempts + 1} инициализации Telegram Login Widget с именем бота:`, cleanBotName);
 
-        // Функция для инициализации виджета непосредственным добавлением iframe
-        const initWidgetDirectly = () => {
+        // Создаем кастомную кнопку для авторизации через Telegram
+        const createCustomButton = () => {
             if (!containerRef.current) return;
 
             // Очищаем контейнер
             containerRef.current.innerHTML = '';
 
-            // Создаем iframe напрямую (это обходной путь, если скрипт не работает)
-            const iframe = document.createElement('iframe');
-            iframe.style.border = 'none';
-            iframe.scrolling = 'no';
-            iframe.frameBorder = '0';
-            iframe.allowFullscreen = true;
-            iframe.width = '280';
-            iframe.height = '40';
+            const customButton = document.createElement('button');
+            customButton.className = 'flex items-center justify-center gap-2 py-2 px-4 bg-[#54A9EB] hover:bg-[#4A96D2] text-white rounded-md transition-colors w-full max-w-[280px]';
 
-            // Используем прямую ссылку на iframe
-            const currentOrigin = window.location.origin;
-            console.log('Устанавливаем origin для iframe:', currentOrigin);
+            const telegramIcon = document.createElement('span');
+            telegramIcon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.9 8.5L15.08 16.32C15 16.85 14.6 17 14.17 16.79L11.53 14.86L10.25 16.09C10.16 16.18 10.08 16.26 9.91 16.26L10.02 13.56L15.14 8.96C15.29 8.82 15.11 8.74 14.91 8.88L8.61 12.74L6 11.97C5.48 11.8 5.47 11.35 6.12 11.1L16.17 7.11C16.61 6.95 17 7.29 16.9 8.5Z" fill="white"/></svg>';
 
-            iframe.src = `https://oauth.telegram.org/embed/${cleanBotName}?size=large&userpic=true&radius=8&onauth=onTelegramAuth&origin=${encodeURIComponent(currentOrigin)}`;
-            containerRef.current.appendChild(iframe);
+            const buttonText = document.createElement('span');
+            buttonText.textContent = 'Войти через Telegram';
+            buttonText.className = 'font-medium';
 
-            // Добавляем обработчик для iframe, чтобы отловить ошибки
-            iframe.onerror = () => {
-                console.error('Ошибка загрузки iframe для Telegram Login');
-                setError('Не удалось загрузить виджет входа через Telegram');
-            };
+            customButton.appendChild(telegramIcon);
+            customButton.appendChild(buttonText);
 
-            // Добавляем обработчик загрузки для проверки контента
-            iframe.onload = () => {
-                try {
-                    // Проверяем, содержит ли iframe ошибку "Origin required"
-                    setTimeout(() => {
-                        if (iframe.contentDocument &&
-                            iframe.contentDocument.body.textContent &&
-                            iframe.contentDocument.body.textContent.includes('Origin required')) {
-                            setError(`Ошибка Origin: Домен ${currentOrigin} не добавлен в список разрешенных доменов в BotFather`);
-                        }
-                    }, 500);
-                } catch (e) {
-                    // Ошибка доступа к contentDocument может возникнуть из-за политики Same-Origin
-                    console.log('Невозможно проверить содержимое iframe из-за ограничений Same-Origin');
-                }
-            };
+            // Обработчик клика для перехода к авторизации через Telegram
+            customButton.addEventListener('click', () => {
+                const currentOrigin = encodeURIComponent(window.location.origin);
 
-            console.log('Виджет Telegram Login добавлен как iframe');
+                // Перенаправляем на авторизацию Telegram
+                window.location.href = `https://oauth.telegram.org/auth?bot_id=${cleanBotName}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback`;
+            });
+
+            containerRef.current.appendChild(customButton);
         };
 
-        // Функция для инициализации виджета через официальный скрипт
+        // Функция для инициализации виджета через официальный скрипт (на случай если предпочтительнее использовать оригинальный виджет)
         const initWidgetWithScript = () => {
             if (!containerRef.current) return;
 
-            // Определяем функцию обработки авторизации в глобальной области видимости
+            // Функция обработки авторизации - не используется при редиректе, но определяем на всякий случай
             window.onTelegramAuth = (user: TelegramUser) => {
-                console.log('Telegram авторизация получена:', user);
-
-                // Отправляем данные на сервер для проверки и авторизации
-                fetch('/api/auth/telegram', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(user),
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(error => {
-                                throw new Error(error.message || 'Ошибка авторизации через Telegram');
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Ответ от сервера:', data);
-
-                        // Если авторизация успешна и получен JWT-токен
-                        if (data.token) {
-                            // Устанавливаем JWT-токен в localStorage
-                            localStorage.setItem('supabase.auth.token', JSON.stringify({
-                                access_token: data.token,
-                                token_type: 'bearer',
-                                expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 дней
-                            }));
-
-                            // Показываем уведомление об успешной авторизации
-                            alert('Вы успешно вошли через Telegram');
-
-                            // Перенаправляем пользователя
-                            router.push('/profile');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка авторизации через Telegram:', error);
-                        alert(error.message || 'Произошла ошибка при авторизации через Telegram');
-                    });
+                console.log('Telegram авторизация получена через виджет:', user);
+                // Здесь можно добавить обработку если необходимо
             };
 
             try {
@@ -168,8 +111,8 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
                             setError('Ошибка загрузки виджета Telegram Login. Проверьте консоль для деталей.');
                         }
 
-                        // Если скрипт не загрузился, используем iframe напрямую
-                        initWidgetDirectly();
+                        // Если скрипт не загрузился, используем кастомную кнопку
+                        createCustomButton();
                     }, 1000); // Даем время на отрисовку ошибки
                 };
 
@@ -185,32 +128,14 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             } catch (e) {
                 console.error('Ошибка при инициализации виджета Telegram:', e);
                 setError('Произошла ошибка при инициализации виджета Telegram.');
-
-                // В случае ошибки пробуем прямую инициализацию через iframe
-                initWidgetDirectly();
+                createCustomButton();
             }
         };
 
-        // Инициализируем виджет с помощью официального скрипта
-        initWidgetWithScript();
+        // Используем кастомную кнопку как основной вариант входа через Telegram
+        createCustomButton();
 
-        // Устанавливаем таймер для проверки, загрузился ли виджет
-        const checkTimer = setTimeout(() => {
-            // Если контейнер существует и в нем нет iframe или кнопки входа
-            if (containerRef.current &&
-                !containerRef.current.querySelector('iframe') &&
-                !containerRef.current.querySelector('button')) {
-
-                console.log('Виджет не загрузился, пробуем прямую инициализацию');
-
-                // Если виджет не загрузился, пробуем прямую инициализацию
-                initWidgetDirectly();
-            }
-        }, 3000);
-
-        // Очистка при размонтировании
         return () => {
-            clearTimeout(checkTimer);
             if (window.onTelegramAuth) {
                 window.onTelegramAuth = undefined;
             }
