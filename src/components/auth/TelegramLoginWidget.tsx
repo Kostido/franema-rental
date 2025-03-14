@@ -28,7 +28,7 @@ interface TelegramUser {
 
 declare global {
     interface Window {
-        onTelegramAuth: (user: TelegramUser) => void;
+        onTelegramAuth?: (user: TelegramUser) => void;
     }
 }
 
@@ -128,7 +128,9 @@ export default function TelegramLoginWidget({
 
         return () => {
             // Очищаем глобальную функцию при размонтировании компонента
-            delete window.onTelegramAuth;
+            if (window.onTelegramAuth) {
+                window.onTelegramAuth = undefined;
+            }
         };
     }, [botName, buttonSize, cornerRadius, showUserPhoto, requestAccess, redirectUrl, onAuth, router, supabase]);
 
