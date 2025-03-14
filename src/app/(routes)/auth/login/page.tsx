@@ -1,7 +1,13 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import Script from 'next/script';
+import dynamic from 'next/dynamic';
+
+// Динамически импортируем клиентский компонент
+const TelegramLoginClientComponent = dynamic(
+    () => import('@/components/auth/TelegramLoginClientComponent'),
+    { ssr: false }
+);
 
 export const metadata: Metadata = {
     title: 'Вход | Franema Rental',
@@ -50,71 +56,7 @@ export default function LoginPage() {
 
                         {botName ? (
                             <div className="w-full flex justify-center py-4">
-                                <div id="telegram-login-widget"></div>
-                                <Script id="telegram-login-script" strategy="afterInteractive">
-                                    {`
-                                    function onTelegramAuth(user) {
-                                        console.log('Telegram авторизация получена:', user);
-                                        
-                                        // Отправляем данные на сервер для проверки и авторизации
-                                        fetch('/api/auth/telegram', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify(user),
-                                        })
-                                        .then(response => {
-                                            if (!response.ok) {
-                                                return response.json().then(error => {
-                                                    throw new Error(error.message || 'Ошибка авторизации через Telegram');
-                                                });
-                                            }
-                                            return response.json();
-                                        })
-                                        .then(data => {
-                                            console.log('Ответ от сервера:', data);
-                                            
-                                            // Если авторизация успешна и получен JWT-токен
-                                            if (data.token) {
-                                                // Устанавливаем JWT-токен в localStorage
-                                                localStorage.setItem('supabase.auth.token', JSON.stringify({
-                                                    access_token: data.token,
-                                                    token_type: 'bearer',
-                                                    expires_at: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 дней
-                                                }));
-                                                
-                                                // Показываем уведомление об успешной авторизации
-                                                alert('Вы успешно вошли через Telegram');
-                                                
-                                                // Перенаправляем пользователя
-                                                window.location.href = '/profile';
-                                            }
-                                        })
-                                        .catch(error => {
-                                            console.error('Ошибка авторизации через Telegram:', error);
-                                            alert(error.message || 'Произошла ошибка при авторизации через Telegram');
-                                        });
-                                    }
-                                    
-                                    // Создаем скрипт для виджета Telegram
-                                    window.addEventListener('DOMContentLoaded', () => {
-                                        const widgetContainer = document.getElementById('telegram-login-widget');
-                                        if (widgetContainer) {
-                                            const script = document.createElement('script');
-                                            script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                                            script.setAttribute('data-telegram-login', '${botName}');
-                                            script.setAttribute('data-size', 'large');
-                                            script.setAttribute('data-radius', '8');
-                                            script.setAttribute('data-userpic', 'true');
-                                            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-                                            script.async = true;
-                                            
-                                            widgetContainer.appendChild(script);
-                                        }
-                                    });
-                                    `}
-                                </Script>
+                                <TelegramLoginClientComponent botName={botName} />
                             </div>
                         ) : (
                             <div className="text-center text-red-500">
