@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 import { TELEGRAM_CONFIG } from '@/lib/telegram/config';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export function TelegramVerification() {
     const [verificationCode, setVerificationCode] = useState('');
@@ -73,7 +73,7 @@ export function TelegramVerification() {
             <h2 className="text-2xl font-bold text-foreground">Верификация через Telegram</h2>
 
             <div className="flex flex-col items-center space-y-4">
-                <QRCode value={botLink} size={200} />
+                <QRCodeSVG value={botLink} size={200} />
 
                 <p className="text-sm text-muted-foreground text-center">
                     Отсканируйте QR-код или{' '}
