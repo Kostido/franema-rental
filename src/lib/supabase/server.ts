@@ -91,10 +91,10 @@ export async function createServiceRoleSupabaseClient() {
     );
 }
 
-export async function createClient() {
-    const cookieStore = await cookies();
+export function createClient() {
+    const cookieStore = cookies();
 
-    return createServerClient<Database>(
+    return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
@@ -106,14 +106,14 @@ export async function createClient() {
                     try {
                         cookieStore.set({ name, value, ...options });
                     } catch (error) {
-                        // Handle cookie errors
+                        // Handle cookie errors in edge functions
                     }
                 },
                 remove(name: string, options: any) {
                     try {
-                        cookieStore.delete(name);
+                        cookieStore.set({ name, value: '', ...options });
                     } catch (error) {
-                        // Handle cookie errors
+                        // Handle cookie errors in edge functions
                     }
                 },
             },
