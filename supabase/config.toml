@@ -1,0 +1,44 @@
+# Конфигурация проекта Supabase
+project_id = "vyvvvnkwqxtdcuwojzee"
+
+[api]
+# Порт для API
+port = 54321
+# Включение/выключение схем
+schemas = ["public", "graphql_public"]
+# Дополнительные заголовки
+extra_search_path = ["public", "extensions"]
+# Максимальные строки для возврата
+max_rows = 1000
+enabled = true
+
+[db]
+# Порт для базы данных
+port = 54322
+
+[studio]
+# Порт для Studio
+port = 54323
+
+[auth]
+# Настройка JWT токенов
+site_url = "http://localhost:3000"
+additional_redirect_urls = []
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enabled = true
+
+[storage]
+# Настройка хранилища файлов
+file_size_limit = "50MiB"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = false
+max_frequency = "1m0s"
+otp_length = 6
+otp_expiry = 3600 
