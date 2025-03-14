@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 export default function LoginPage() {
     const [botName, setBotName] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [widgetFailed, setWidgetFailed] = useState<boolean>(false);
 
     useEffect(() => {
         // Получаем имя бота из переменных окружения на клиенте
@@ -27,7 +28,33 @@ export default function LoginPage() {
         }
 
         setIsLoading(false);
+
+        // Проверяем, есть ли сообщение об ошибке 404 в консоли через 5 секунд
+        const timeoutId = setTimeout(() => {
+            // Если в консоли есть сообщение о 404 ошибке, переключаемся на альтернативный метод
+            if (document.querySelector('.telegram-login-container')?.textContent?.includes('Username invalid')) {
+                console.log('Обнаружена ошибка с виджетом Telegram, переключаемся на альтернативный метод входа');
+                setWidgetFailed(true);
+            }
+        }, 5000);
+
+        return () => clearTimeout(timeoutId);
     }, []);
+
+    const handleTelegramLogin = () => {
+        const cleanBotName = botName.startsWith('@') ? botName.substring(1) : botName;
+        // Открытие Telegram авторизации в новом окне
+        const width = 550;
+        const height = 470;
+        const left = (window.innerWidth - width) / 2;
+        const top = (window.innerHeight - height) / 2;
+
+        window.open(
+            `https://oauth.telegram.org/auth?bot_id=${cleanBotName}&origin=${encodeURIComponent(window.location.origin)}&return_to=${encodeURIComponent(window.location.href)}`,
+            'Telegram Auth',
+            `width=${width},height=${height},left=${left},top=${top}`
+        );
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
@@ -51,9 +78,21 @@ export default function LoginPage() {
                             <p className="text-sm text-gray-600 mb-4">
                                 Быстрый и безопасный вход без пароля
                             </p>
+
                             {isLoading ? (
                                 <div className="text-sm text-gray-500">
                                     Загрузка...
+                                </div>
+                            ) : widgetFailed ? (
+                                // Альтернативная кнопка входа через Telegram
+                                <div className="flex justify-center">
+                                    <button
+                                        onClick={handleTelegramLogin}
+                                        className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600"
+                                    >
+                                        <FaTelegram className="mr-2" />
+                                        Войти через Telegram
+                                    </button>
                                 </div>
                             ) : botName ? (
                                 <div className="flex justify-center">
@@ -64,10 +103,23 @@ export default function LoginPage() {
                                     Не удалось загрузить виджет Telegram. Имя бота не задано в переменных окружения.
                                 </div>
                             )}
+
                             {/* Отладочная информация */}
                             <div className="mt-4 text-xs text-gray-400">
                                 Имя бота: {botName || 'Не задано'}
                             </div>
+
+                            {/* Альтернативный способ входа */}
+                            {!isLoading && botName && !widgetFailed && (
+                                <div className="mt-4">
+                                    <button
+                                        onClick={() => setWidgetFailed(true)}
+                                        className="text-xs text-blue-500 hover:underline"
+                                    >
+                                        Проблемы с входом? Нажмите здесь для альтернативного способа
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
