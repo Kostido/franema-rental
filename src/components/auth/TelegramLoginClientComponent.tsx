@@ -2,6 +2,13 @@
 
 import { useEffect, useRef } from 'react';
 
+// Добавляем типы для глобального объекта window
+declare global {
+    interface Window {
+        onTelegramAuth?: (user: any) => void;
+    }
+}
+
 interface TelegramLoginClientComponentProps {
     botName: string;
 }
@@ -77,7 +84,6 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
         // Очистка при размонтировании
         return () => {
             if (window.onTelegramAuth) {
-                // @ts-ignore
                 window.onTelegramAuth = undefined;
             }
         };
@@ -88,11 +94,4 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             {/* Здесь будет отображаться виджет Telegram Login */}
         </div>
     );
-}
-
-// Добавляем типы для глобального объекта window
-declare global {
-    interface Window {
-        onTelegramAuth: (user: any) => void;
-    }
 } 
