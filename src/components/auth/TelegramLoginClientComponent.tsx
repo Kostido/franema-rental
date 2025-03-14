@@ -23,7 +23,10 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             return;
         }
 
-        console.log('Инициализация Telegram Login Widget с именем бота:', botName);
+        // Удаляем символ @ из имени бота, если он присутствует
+        const cleanBotName = botName.startsWith('@') ? botName.substring(1) : botName;
+
+        console.log('Инициализация Telegram Login Widget с именем бота:', cleanBotName);
 
         // Определяем функцию обработки авторизации в глобальной области видимости
         window.onTelegramAuth = (user: TelegramUser) => {
@@ -79,7 +82,7 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
                 // Создаем скрипт
                 const script = document.createElement('script');
                 script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                script.setAttribute('data-telegram-login', botName);
+                script.setAttribute('data-telegram-login', cleanBotName);
                 script.setAttribute('data-size', 'large');
                 script.setAttribute('data-radius', '8');
                 script.setAttribute('data-userpic', 'true');
@@ -94,7 +97,7 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
 
                 // Добавляем скрипт в контейнер
                 containerRef.current.appendChild(script);
-                console.log('Скрипт Telegram Login Widget добавлен в DOM');
+                console.log('Скрипт Telegram Login Widget добавлен в DOM с именем бота:', cleanBotName);
             } catch (e) {
                 console.error('Ошибка при инициализации виджета Telegram:', e);
                 setError('Произошла ошибка при инициализации виджета Telegram.');

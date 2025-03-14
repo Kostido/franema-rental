@@ -13,12 +13,20 @@ import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
     const [botName, setBotName] = useState<string>('');
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
         // Получаем имя бота из переменных окружения на клиенте
         const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
         console.log('Имя бота из переменных окружения:', botUsername);
-        setBotName(botUsername || '');
+
+        if (botUsername) {
+            setBotName(botUsername);
+        } else {
+            console.error('Переменная окружения NEXT_PUBLIC_TELEGRAM_BOT_USERNAME не задана');
+        }
+
+        setIsLoading(false);
     }, []);
 
     return (
@@ -43,13 +51,17 @@ export default function LoginPage() {
                             <p className="text-sm text-gray-600 mb-4">
                                 Быстрый и безопасный вход без пароля
                             </p>
-                            {botName ? (
+                            {isLoading ? (
+                                <div className="text-sm text-gray-500">
+                                    Загрузка...
+                                </div>
+                            ) : botName ? (
                                 <div className="flex justify-center">
                                     <TelegramLoginClientComponent botName={botName} />
                                 </div>
                             ) : (
                                 <div className="text-sm text-red-500">
-                                    Загрузка виджета Telegram... Если виджет не появляется, проверьте настройки бота.
+                                    Не удалось загрузить виджет Telegram. Имя бота не задано в переменных окружения.
                                 </div>
                             )}
                             {/* Отладочная информация */}
