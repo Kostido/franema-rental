@@ -53,8 +53,30 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
             customButton.addEventListener('click', () => {
                 const currentOrigin = encodeURIComponent(window.location.origin);
 
-                // Перенаправляем на авторизацию Telegram
-                window.location.href = `https://oauth.telegram.org/auth?bot_id=${cleanBotName}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback`;
+                // Проверяем, есть ли числовой идентификатор бота в переменных окружения
+                const botId = process.env.NEXT_PUBLIC_TELEGRAM_BOT_ID;
+
+                if (botId) {
+                    // Если идентификатор задан в переменных окружения, используем его напрямую
+                    window.location.href = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback`;
+                } else {
+                    // Иначе получаем идентификатор через API
+                    fetch(`/api/telegram/bot-info?bot_name=${encodeURIComponent(cleanBotName)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.ok && data.bot_id) {
+                                // Перенаправляем на авторизацию Telegram с числовым идентификатором
+                                window.location.href = `https://oauth.telegram.org/auth?bot_id=${data.bot_id}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback`;
+                            } else {
+                                // Если не удалось получить идентификатор, показываем ошибку
+                                setError(`Не удалось получить идентификатор бота. ${data.error || ''}`);
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Ошибка получения информации о боте:', err);
+                            setError('Не удалось получить информацию о боте. Пожалуйста, попробуйте позже.');
+                        });
+                }
             });
 
             containerRef.current.appendChild(customButton);

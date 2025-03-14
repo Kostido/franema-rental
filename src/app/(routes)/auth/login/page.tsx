@@ -18,13 +18,17 @@ export default function LoginPage() {
     useEffect(() => {
         // Получаем имя бота из переменных окружения на клиенте
         const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+        const botId = process.env.NEXT_PUBLIC_TELEGRAM_BOT_ID;
+
         console.log('Имя бота из переменных окружения:', botUsername);
+        console.log('ID бота из переменных окружения:', botId);
 
         if (botUsername) {
             // Убираем возможные пробелы в начале и конце
             setBotName(botUsername.trim());
-        } else {
-            console.error('Переменная окружения NEXT_PUBLIC_TELEGRAM_BOT_USERNAME не задана');
+        } else if (!botId) {
+            // Если нет ни имени, ни идентификатора бота
+            console.error('Переменные окружения NEXT_PUBLIC_TELEGRAM_BOT_USERNAME и NEXT_PUBLIC_TELEGRAM_BOT_ID не заданы');
         }
 
         setIsLoading(false);
