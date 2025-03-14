@@ -21,7 +21,7 @@ export async function POST(request: Request) {
             return new NextResponse('OK', { status: 200 });
         }
 
-        const supabase = createClient();
+        const supabase = await createClient();
 
         switch (message.text) {
             case TELEGRAM_COMMANDS.START:
