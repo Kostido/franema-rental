@@ -8,7 +8,7 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[];
 
-export type Database = {
+export interface Database {
     public: {
         Tables: {
             users: {
@@ -16,17 +16,17 @@ export type Database = {
                     id: string;
                     email: string;
                     full_name: string;
-                    role: UserRole;
+                    role: 'ADMIN' | 'USER' | 'MANAGER';
                     telegram_id: string | null;
                     is_verified: boolean;
                     created_at: string;
                     updated_at: string;
                 };
                 Insert: {
-                    id?: string;
+                    id: string;
                     email: string;
                     full_name: string;
-                    role?: UserRole;
+                    role?: 'ADMIN' | 'USER' | 'MANAGER';
                     telegram_id?: string | null;
                     is_verified?: boolean;
                     created_at?: string;
@@ -36,7 +36,7 @@ export type Database = {
                     id?: string;
                     email?: string;
                     full_name?: string;
-                    role?: UserRole;
+                    role?: 'ADMIN' | 'USER' | 'MANAGER';
                     telegram_id?: string | null;
                     is_verified?: boolean;
                     created_at?: string;
@@ -48,7 +48,7 @@ export type Database = {
                     id: string;
                     name: string;
                     description: string;
-                    category: EquipmentCategory;
+                    category: 'CAMERA' | 'LENS' | 'LIGHTING' | 'AUDIO' | 'ACCESSORY' | 'OTHER';
                     serial_number: string;
                     is_available: boolean;
                     image_url: string | null;
@@ -60,7 +60,7 @@ export type Database = {
                     id?: string;
                     name: string;
                     description: string;
-                    category: EquipmentCategory;
+                    category: 'CAMERA' | 'LENS' | 'LIGHTING' | 'AUDIO' | 'ACCESSORY' | 'OTHER';
                     serial_number: string;
                     is_available?: boolean;
                     image_url?: string | null;
@@ -72,7 +72,7 @@ export type Database = {
                     id?: string;
                     name?: string;
                     description?: string;
-                    category?: EquipmentCategory;
+                    category?: 'CAMERA' | 'LENS' | 'LIGHTING' | 'AUDIO' | 'ACCESSORY' | 'OTHER';
                     serial_number?: string;
                     is_available?: boolean;
                     image_url?: string | null;
@@ -88,7 +88,7 @@ export type Database = {
                     equipment_id: string;
                     start_date: string;
                     end_date: string;
-                    status: BookingStatus;
+                    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
                     notes: string | null;
                     created_at: string;
                     updated_at: string;
@@ -99,7 +99,7 @@ export type Database = {
                     equipment_id: string;
                     start_date: string;
                     end_date: string;
-                    status?: BookingStatus;
+                    status?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
                     notes?: string | null;
                     created_at?: string;
                     updated_at?: string;
@@ -110,7 +110,7 @@ export type Database = {
                     equipment_id?: string;
                     start_date?: string;
                     end_date?: string;
-                    status?: BookingStatus;
+                    status?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
                     notes?: string | null;
                     created_at?: string;
                     updated_at?: string;
@@ -153,12 +153,42 @@ export type Database = {
             [_ in never]: never;
         };
         Functions: {
-            [_ in never]: never;
+            check_equipment_availability: {
+                Args: {
+                    equipment_id: string;
+                    start_date: string;
+                    end_date: string;
+                    exclude_booking_id?: string;
+                };
+                Returns: boolean;
+            };
         };
         Enums: {
-            equipment_category: EquipmentCategory;
-            booking_status: BookingStatus;
-            user_role: UserRole;
+            user_role: 'ADMIN' | 'USER' | 'MANAGER';
+            equipment_category: 'CAMERA' | 'LENS' | 'LIGHTING' | 'AUDIO' | 'ACCESSORY' | 'OTHER';
+            booking_status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
         };
     };
-}; 
+}
+
+// Типы для удобного использования в приложении
+export type User = Database['public']['Tables']['users']['Row'];
+export type NewUser = Database['public']['Tables']['users']['Insert'];
+export type UpdateUser = Database['public']['Tables']['users']['Update'];
+
+export type Equipment = Database['public']['Tables']['equipment']['Row'];
+export type NewEquipment = Database['public']['Tables']['equipment']['Insert'];
+export type UpdateEquipment = Database['public']['Tables']['equipment']['Update'];
+
+export type Booking = Database['public']['Tables']['bookings']['Row'];
+export type NewBooking = Database['public']['Tables']['bookings']['Insert'];
+export type UpdateBooking = Database['public']['Tables']['bookings']['Update'];
+
+export type TelegramVerification = Database['public']['Tables']['telegram_verifications']['Row'];
+export type NewTelegramVerification = Database['public']['Tables']['telegram_verifications']['Insert'];
+export type UpdateTelegramVerification = Database['public']['Tables']['telegram_verifications']['Update'];
+
+// Типы перечислений
+export type UserRole = Database['public']['Enums']['user_role'];
+export type EquipmentCategory = Database['public']['Enums']['equipment_category'];
+export type BookingStatus = Database['public']['Enums']['booking_status']; 

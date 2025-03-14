@@ -1,6 +1,7 @@
 import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/supabase';
+import { createBrowserClient } from '@supabase/ssr';
 
 // Клиент для использования в клиентских компонентах
 export const createClient = () => {
@@ -19,4 +20,15 @@ export const createActionClient = async () => {
 
     const cookieStore = cookies();
     return createServerComponentClient<Database>({ cookies: () => cookieStore });
-}; 
+};
+
+/**
+ * Создает клиентский Supabase клиент для использования в браузере
+ * Используется в клиентских компонентах
+ */
+export function createClientSupabaseClient() {
+    return createBrowserClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+} 
