@@ -38,3 +38,12 @@
     },
   ]
 }
+
+## Документация которую ОБЯЗАТЕЛЬНО надо использовать при разработке
+Node.js v22.14.0 documentation - https://nodejs.org/docs/latest-v22.x/api/index.html
+Tailwindcss v3.4.17 documentation - https://v3.tailwindcss.com/docs/installation
+Next.js v.15.2.2 documentation - https://nextjs.org/docs
+Supabase v1.225.0 documentation - https://supabase.com/docs/reference/javascript/supabase-client
+React v18.3.1 documentation - https://18.react.dev/learn
+React-hook-form v7.46.0 documentation - https://react-hook-form.com/
+

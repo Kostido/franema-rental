@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TelegramUser } from '@/types/telegram';
 import { useRouter } from 'next/navigation';
 
@@ -14,8 +14,17 @@ interface TelegramLoginClientComponentProps {
 export default function TelegramLoginClientComponent({ botName }: TelegramLoginClientComponentProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        // Проверяем, что имя бота не пустое
+        if (!botName) {
+            setError('Имя бота не задано. Проверьте переменную окружения NEXT_PUBLIC_TELEGRAM_BOT_USERNAME.');
+            return;
+        }
+
+        console.log('Инициализация Telegram Login Widget с именем бота:', botName);
+
         // Определяем функцию обработки авторизации в глобальной области видимости
         window.onTelegramAuth = (user: TelegramUser) => {
             console.log('Telegram авторизация получена:', user);
@@ -63,21 +72,33 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
 
         // Создаем и добавляем скрипт для виджета Telegram
         if (containerRef.current) {
-            // Очищаем контейнер
-            containerRef.current.innerHTML = '';
+            try {
+                // Очищаем контейнер
+                containerRef.current.innerHTML = '';
 
-            // Создаем скрипт
-            const script = document.createElement('script');
-            script.src = 'https://telegram.org/js/telegram-widget.js?22';
-            script.setAttribute('data-telegram-login', botName);
-            script.setAttribute('data-size', 'large');
-            script.setAttribute('data-radius', '8');
-            script.setAttribute('data-userpic', 'true');
-            script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-            script.async = true;
+                // Создаем скрипт
+                const script = document.createElement('script');
+                script.src = 'https://telegram.org/js/telegram-widget.js?22';
+                script.setAttribute('data-telegram-login', botName);
+                script.setAttribute('data-size', 'large');
+                script.setAttribute('data-radius', '8');
+                script.setAttribute('data-userpic', 'true');
+                script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+                script.async = true;
 
-            // Добавляем скрипт в контейнер
-            containerRef.current.appendChild(script);
+                // Обработчик ошибок для скрипта
+                script.onerror = (e) => {
+                    console.error('Ошибка загрузки скрипта Telegram:', e);
+                    setError('Не удалось загрузить виджет Telegram. Проверьте подключение к интернету и настройки бота.');
+                };
+
+                // Добавляем скрипт в контейнер
+                containerRef.current.appendChild(script);
+                console.log('Скрипт Telegram Login Widget добавлен в DOM');
+            } catch (e) {
+                console.error('Ошибка при инициализации виджета Telegram:', e);
+                setError('Произошла ошибка при инициализации виджета Telegram.');
+            }
         }
 
         // Очистка при размонтировании
@@ -89,8 +110,17 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
     }, [botName, router]);
 
     return (
-        <div className="telegram-login-container" ref={containerRef}>
-            {/* Здесь будет отображаться виджет Telegram Login */}
+        <div className="telegram-login-container w-full">
+            {error ? (
+                <div className="text-red-500 text-sm p-2 border border-red-200 rounded bg-red-50">
+                    {error}
+                </div>
+            ) : (
+                <div ref={containerRef} className="flex justify-center min-h-[36px]">
+                    {/* Здесь будет отображаться виджет Telegram Login */}
+                    <div className="text-gray-400 text-sm">Загрузка виджета Telegram...</div>
+                </div>
+            )}
         </div>
     );
 } 

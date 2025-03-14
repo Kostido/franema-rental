@@ -27,7 +27,7 @@
 
 ### Интеграция с Telegram
 
-- **Telegram Bot API** - Бот для процесса верификации
+- **Telegram Bot API** - Бот для процесса аутентификации и входа
 - **Next.js API Routes** - Для обработки вебхуков
 - **Telegram Web App SDK** - Возможность интеграции приложения в Telegram
 
@@ -149,5 +149,12 @@ TELEGRAM_WEBHOOK_SECRET=ваш_webhook_secret
 4. Развернуть
 
 ## Лицензия
+
+
+## Документация которую ОБЯЗАТЕЛЬНО надо использовать при разработке
+Node.js v22.14.0 documentation - https://nodejs.org/docs/latest-v22.x/api/index.html
+Tailwindcss v3.4.17 documentation - https://v3.tailwindcss.com/docs/installation
+Next.js v.15.2.2 documentation - https://nextjs.org/docs
+
 
 MIT

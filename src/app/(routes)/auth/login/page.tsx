@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import TelegramLoginClientComponent from '@/components/auth/TelegramLoginClientComponent';
 import { FaTelegram } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
 
 // Метаданные теперь должны быть определены в layout.tsx
 // export const metadata: Metadata = {
@@ -11,6 +12,15 @@ import { FaTelegram } from 'react-icons/fa';
 // };
 
 export default function LoginPage() {
+    const [botName, setBotName] = useState<string>('');
+
+    useEffect(() => {
+        // Получаем имя бота из переменных окружения на клиенте
+        const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+        console.log('Имя бота из переменных окружения:', botUsername);
+        setBotName(botUsername || '');
+    }, []);
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
             <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -33,8 +43,18 @@ export default function LoginPage() {
                             <p className="text-sm text-gray-600 mb-4">
                                 Быстрый и безопасный вход без пароля
                             </p>
-                            <div className="flex justify-center">
-                                <TelegramLoginClientComponent botName="FranemaRentalBot" />
+                            {botName ? (
+                                <div className="flex justify-center">
+                                    <TelegramLoginClientComponent botName={botName} />
+                                </div>
+                            ) : (
+                                <div className="text-sm text-red-500">
+                                    Загрузка виджета Telegram... Если виджет не появляется, проверьте настройки бота.
+                                </div>
+                            )}
+                            {/* Отладочная информация */}
+                            <div className="mt-4 text-xs text-gray-400">
+                                Имя бота: {botName || 'Не задано'}
                             </div>
                         </div>
                     </div>
