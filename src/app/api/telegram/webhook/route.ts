@@ -32,6 +32,15 @@ export async function POST(request: Request) {
                 break;
 
             case TELEGRAM_COMMANDS.VERIFY:
+                // Проверяем, есть ли у сообщения отправитель
+                if (!message.from) {
+                    await sendTelegramMessage(
+                        message.chat.id,
+                        'Не удалось определить отправителя сообщения. Пожалуйста, попробуйте позже.'
+                    );
+                    break;
+                }
+
                 // Проверяем, есть ли уже верификация для этого Telegram ID
                 const { data: existingVerification } = await supabase
                     .from('telegram_verifications')
