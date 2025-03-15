@@ -68,10 +68,6 @@ export default function TelegramLoginButton({
         <div className={className}>
             <LoginButton
                 botUsername={botUsername}
-                buttonSize="large"
-                cornerRadius={8}
-                lang="ru"
-                usePic={true}
                 onAuthCallback={handleTelegramAuth}
             />
             {isLoading && <div className="mt-2 text-sm text-gray-500">Идет авторизация...</div>}
