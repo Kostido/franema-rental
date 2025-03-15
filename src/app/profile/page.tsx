@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import TelegramAccountInfo from '@/components/profile/TelegramAccountInfo';
+import TelegramLoginButton from '@/components/auth/TelegramLoginButton';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
@@ -31,11 +32,6 @@ export default async function ProfilePage() {
         .eq('user_id', user.id)
         .single();
 
-    if (!telegramUser) {
-        // Если у пользователя нет подключенного Telegram-аккаунта, перенаправляем на страницу входа
-        redirect('/auth/login');
-    }
-
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-2xl font-bold mb-8">Профиль пользователя</h1>
@@ -55,12 +51,34 @@ export default async function ProfilePage() {
                                 <label className="text-sm text-gray-600">Роль</label>
                                 <p className="font-medium capitalize">{userData?.role || 'user'}</p>
                             </div>
+                            <div>
+                                <label className="text-sm text-gray-600">Статус верификации</label>
+                                <p className="font-medium">
+                                    {userData?.is_verified
+                                        ? '✅ Верифицирован'
+                                        : '❌ Не верифицирован'}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="space-y-6">
-                    <TelegramAccountInfo telegramUser={telegramUser} />
+                    {telegramUser ? (
+                        <TelegramAccountInfo telegramUser={telegramUser} />
+                    ) : (
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h3 className="text-lg font-semibold mb-4">Верификация через Telegram</h3>
+                            <p className="text-gray-600 mb-4">
+                                Для полного доступа к сервису необходимо верифицировать аккаунт
+                                через Telegram. Нажмите кнопку ниже, чтобы подключить ваш
+                                Telegram-аккаунт.
+                            </p>
+                            <div className="flex justify-center">
+                                <TelegramLoginButton />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

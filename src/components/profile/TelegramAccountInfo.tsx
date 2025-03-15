@@ -26,14 +26,27 @@ export default function TelegramAccountInfo({ telegramUser }: TelegramAccountInf
         try {
             setIsDisconnecting(true);
 
-            // Отправляем запрос на отключение Telegram-аккаунта
-            const response = await fetch('/api/auth/telegram/disconnect', {
-                method: 'POST',
-            });
+            // Отключаем Telegram-аккаунт
+            const { error: updateUserError } = await supabase
+                .from('users')
+                .update({
+                    telegram_id: null,
+                    is_verified: false
+                })
+                .eq('id', (await supabase.auth.getUser()).data.user?.id);
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Ошибка при отключении Telegram-аккаунта');
+            if (updateUserError) {
+                throw new Error(updateUserError.message || 'Ошибка при отключении Telegram-аккаунта');
+            }
+
+            // Удаляем запись из таблицы telegram_users
+            const { error: deleteTelegramUserError } = await supabase
+                .from('telegram_users')
+                .delete()
+                .eq('telegram_id', telegramUser?.telegram_id);
+
+            if (deleteTelegramUserError) {
+                throw new Error(deleteTelegramUserError.message || 'Ошибка при удалении Telegram-аккаунта');
             }
 
             toast.success('Telegram-аккаунт успешно отключен');
