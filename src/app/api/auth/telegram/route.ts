@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/lib/supabase/server';
+import { createServiceRoleClient, createServerSupabaseClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { TelegramUser } from '@/types/telegram';
-import { createClient } from '@supabase/supabase-js';
-import { AuthDataValidator, objectToAuthDataMap } from '@telegram-auth/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { AuthDataValidator, objectToAuthDataMap, TelegramUserData } from '@telegram-auth/server';
 import { cookies } from 'next/headers';
 
 // Инициализация Supabase клиента
@@ -12,7 +12,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey);
 
 // Функция для проверки подписи данных от Telegram
 function verifyTelegramData(telegramData: TelegramUser): boolean {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Создаем клиент Supabase
-        const supabase = await createClient();
+        const supabase = await createServerSupabaseClient();
 
         // Получаем текущего пользователя
         const { data: { user } } = await supabase.auth.getUser();
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             first_name: telegramUser.first_name,
             last_name: telegramUser.last_name || null,
             photo_url: telegramUser.photo_url || null,
-            auth_date: new Date(telegramUser.auth_date * 1000),
+            auth_date: new Date(),
         };
 
         const { error: upsertError } = await supabase
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const supabase = await createServerSupabaseClient();
 
         // Получаем текущего пользователя
         const { data: { user } } = await supabase.auth.getUser();
