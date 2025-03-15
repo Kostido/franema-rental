@@ -58,15 +58,22 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
 
                 if (botId) {
                     // Если идентификатор задан в переменных окружения, используем его напрямую
-                    window.location.href = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback`;
+                    console.log('Используем ID бота из переменных окружения:', botId);
+
+                    // Используем правильный URL для авторизации через Telegram
+                    // Добавляем параметр request_access=write для запроса доступа к данным пользователя
+                    window.location.href = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback&request_access=write`;
                 } else {
                     // Иначе получаем идентификатор через API
                     fetch(`/api/telegram/bot-info?bot_name=${encodeURIComponent(cleanBotName)}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.ok && data.bot_id) {
+                                console.log('Получен ID бота через API:', data.bot_id);
+
                                 // Перенаправляем на авторизацию Telegram с числовым идентификатором
-                                window.location.href = `https://oauth.telegram.org/auth?bot_id=${data.bot_id}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback`;
+                                // Добавляем параметр request_access=write для запроса доступа к данным пользователя
+                                window.location.href = `https://oauth.telegram.org/auth?bot_id=${data.bot_id}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback&request_access=write`;
                             } else {
                                 // Если не удалось получить идентификатор, показываем ошибку
                                 setError(`Не удалось получить идентификатор бота. ${data.error || ''}`);

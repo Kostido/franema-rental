@@ -21,11 +21,16 @@ function verifyTelegramData(telegramData: TelegramUser): boolean {
         .map(([key, value]) => `${key}=${value}`)
         .join('\n');
 
-    // Создаем секретный ключ на основе токена бота
+    console.log('Строка для проверки:', dataCheckString);
+
+    // Создаем секретный ключ на основе токена бота и строки "WebAppData"
+    // Это соответствует официальной документации Telegram и примеру PHP-кода
     const secretKey = crypto
-        .createHash('sha256')
+        .createHmac('sha256', 'WebAppData')
         .update(telegramBotToken)
         .digest();
+
+    console.log('Секретный ключ создан');
 
     // Вычисляем хеш
     const hash = crypto
@@ -33,12 +38,17 @@ function verifyTelegramData(telegramData: TelegramUser): boolean {
         .update(dataCheckString)
         .digest('hex');
 
+    console.log('Вычисленный хеш:', hash);
+    console.log('Полученный хеш:', telegramData.hash);
+
     // Сравниваем вычисленный хеш с полученным
     return hash === telegramData.hash;
 }
 
 export async function GET(request: NextRequest) {
     try {
+        console.log('Получен запрос на обработку колбэка от Telegram');
+
         // Получаем параметры из URL
         const searchParams = request.nextUrl.searchParams;
         const params: Record<string, string> = {};
@@ -46,6 +56,13 @@ export async function GET(request: NextRequest) {
         // Собираем все параметры из URL
         for (const [key, value] of searchParams.entries()) {
             params[key] = value;
+            console.log(`Параметр API: ${key} = ${value}`);
+        }
+
+        // Проверяем наличие обязательных параметров
+        if (!params.id || !params.hash || !params.auth_date) {
+            console.error('Отсутствуют обязательные параметры:', { id: !!params.id, hash: !!params.hash, auth_date: !!params.auth_date });
+            return NextResponse.redirect(new URL('/auth/login?error=missing_telegram_data', request.url));
         }
 
         // Преобразуем параметры в объект TelegramUser

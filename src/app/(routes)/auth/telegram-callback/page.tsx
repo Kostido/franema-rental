@@ -20,11 +20,17 @@ function TelegramCallbackHandler() {
                 const params = new URLSearchParams();
                 for (const [key, value] of searchParams.entries()) {
                     params.append(key, value);
+                    console.log(`Параметр URL: ${key} = ${value}`);
                 }
+
+                console.log('Все параметры URL:', params.toString());
 
                 // Если есть данные от Telegram, обрабатываем их
                 if (params.has('id') && params.has('hash')) {
+                    console.log('Найдены необходимые параметры id и hash');
+
                     const response = await fetch(`/api/auth/telegram-callback?${params.toString()}`);
+                    console.log('Статус ответа от API:', response.status);
 
                     if (!response.ok) {
                         const data = await response.json();
