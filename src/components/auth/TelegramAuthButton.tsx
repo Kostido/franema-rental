@@ -31,11 +31,29 @@ export default function TelegramAuthButton() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2">
                         <Avatar className="h-6 w-6">
-                            <img
-                                src={session.user.image || '/default-avatar.png'}
-                                alt={session.user.name || 'Пользователь'}
-                                className="h-full w-full object-cover"
-                            />
+                            <div className="h-full w-full bg-gray-200 rounded-full flex items-center justify-center">
+                                {session.user.image ? (
+                                    <img
+                                        src={session.user.image}
+                                        alt={session.user.name || 'Пользователь'}
+                                        className="h-full w-full object-cover rounded-full"
+                                    />
+                                ) : (
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="h-4 w-4 text-gray-500"
+                                    >
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                )}
+                            </div>
                         </Avatar>
                         <span className="hidden md:inline">{session.user.name}</span>
                     </Button>

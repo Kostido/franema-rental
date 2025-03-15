@@ -66,7 +66,7 @@ async function createUserOrUpdate(user: any) {
     return userData;
 }
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             id: 'telegram-login',
