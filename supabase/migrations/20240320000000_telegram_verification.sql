@@ -19,17 +19,4 @@ create policy "Users can view their own verifications"
 
 create policy "Users can update their own verifications"
     on public.telegram_verifications for update
-    using (auth.uid() = user_id);
-
--- Add telegram_id and is_verified columns to profiles table if they don't exist
-do $$ 
-begin
-    if not exists (select 1 from information_schema.columns 
-                  where table_schema = 'public' 
-                  and table_name = 'profiles' 
-                  and column_name = 'telegram_id') then
-        alter table public.profiles 
-        add column telegram_id bigint unique,
-        add column is_verified boolean default false;
-    end if;
-end $$; 
+    using (auth.uid() = user_id); 

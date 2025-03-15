@@ -1,13 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-
-// Динамически импортируем компонент TelegramLoginWidget, чтобы избежать ошибок SSR
-const TelegramLoginWidget = dynamic(
-    () => import('@/components/auth/TelegramLoginWidget'),
-    { ssr: false }
-);
+import { useEffect } from 'react';
+import { signIn } from 'next-auth/react';
+import { LoginButton } from '@telegram-auth/react';
 
 interface TelegramLoginButtonProps {
     botName: string;
@@ -22,20 +17,10 @@ export default function TelegramLoginButton({
     cornerRadius = 8,
     showUserPhoto = true
 }: TelegramLoginButtonProps) {
-    const [isMounted, setIsMounted] = useState(false);
-
     // Отладочная информация
-    console.log('TelegramLoginButton - botName:', botName);
-
-    // Используем useEffect для отображения компонента только на клиенте
     useEffect(() => {
-        setIsMounted(true);
-        console.log('TelegramLoginButton - компонент смонтирован');
-    }, []);
-
-    if (!isMounted) {
-        return <div className="text-center text-xs text-gray-500">Загрузка виджета Telegram...</div>;
-    }
+        console.log('TelegramLoginButton - botName:', botName);
+    }, [botName]);
 
     if (!botName) {
         return <div className="text-center text-red-500">Ошибка: имя бота не задано</div>;
@@ -43,14 +28,16 @@ export default function TelegramLoginButton({
 
     return (
         <div className="w-full flex justify-center">
-            <div className="text-center text-xs text-gray-500 mb-2">
-                Загружаем виджет для бота: {botName}
-            </div>
-            <TelegramLoginWidget
-                botName={botName}
+            <LoginButton
+                botUsername={botName}
+                onAuthCallback={(data) => {
+                    console.log('Получены данные от Telegram:', data);
+                    signIn('telegram-login', { callbackUrl: '/' }, data as any);
+                }}
                 buttonSize={buttonSize}
                 cornerRadius={cornerRadius}
                 showUserPhoto={showUserPhoto}
+                className="telegram-login-button"
             />
         </div>
     );

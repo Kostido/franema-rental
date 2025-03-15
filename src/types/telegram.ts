@@ -11,6 +11,16 @@ export interface TelegramUser {
     hash: string;
 }
 
+export interface TelegramAuthData {
+    id: string;
+    first_name: string;
+    last_name?: string;
+    username?: string;
+    photo_url?: string;
+    auth_date: string;
+    hash: string;
+}
+
 export interface TelegramChat {
     id: number;
     type: 'private' | 'group' | 'supergroup' | 'channel';
