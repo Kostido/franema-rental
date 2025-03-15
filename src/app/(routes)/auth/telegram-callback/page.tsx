@@ -48,6 +48,14 @@ function TelegramCallbackHandler() {
                         router.push('/profile');
                     }, 2000);
                 } else {
+                    // Проверяем, является ли это отменой авторизации
+                    if (searchParams.has('tgWebAppData') || searchParams.has('tgWebAppBotInline')) {
+                        console.log('Обнаружена отмена авторизации Telegram');
+                        // Немедленно перенаправляем пользователя обратно на главную страницу
+                        router.push('/');
+                        return;
+                    }
+
                     // Если данные отсутствуют, это может быть отмена авторизации
                     setStatus('error');
                     setError('Не получены данные для авторизации через Telegram');

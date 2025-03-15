@@ -62,7 +62,7 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
 
                     // Используем правильный URL для авторизации через Telegram
                     // Добавляем параметр request_access=write для запроса доступа к данным пользователя
-                    window.location.href = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback&request_access=write`;
+                    window.location.href = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback&request_access=write&cancel_url=${currentOrigin}/api/auth/telegram-cancel?redirect_url=${encodeURIComponent(window.location.pathname)}`;
                 } else {
                     // Иначе получаем идентификатор через API
                     fetch(`/api/telegram/bot-info?bot_name=${encodeURIComponent(cleanBotName)}`)
@@ -73,7 +73,7 @@ export default function TelegramLoginClientComponent({ botName }: TelegramLoginC
 
                                 // Перенаправляем на авторизацию Telegram с числовым идентификатором
                                 // Добавляем параметр request_access=write для запроса доступа к данным пользователя
-                                window.location.href = `https://oauth.telegram.org/auth?bot_id=${data.bot_id}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback&request_access=write`;
+                                window.location.href = `https://oauth.telegram.org/auth?bot_id=${data.bot_id}&origin=${currentOrigin}&return_to=${currentOrigin}/auth/telegram-callback&request_access=write&cancel_url=${currentOrigin}/api/auth/telegram-cancel?redirect_url=${encodeURIComponent(window.location.pathname)}`;
                             } else {
                                 // Если не удалось получить идентификатор, показываем ошибку
                                 setError(`Не удалось получить идентификатор бота. ${data.error || ''}`);
