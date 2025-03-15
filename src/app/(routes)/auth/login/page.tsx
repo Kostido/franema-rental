@@ -40,7 +40,7 @@ export default function LoginPage() {
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-gray-900">Вход в систему</h1>
                     <p className="mt-2 text-sm text-gray-600">
-                        Войдите через Telegram для доступа к системе бронирования
+                        Войдите через Telegram для доступа к системе бронирования. Новый аккаунт будет создан автоматически, если вы впервые используете сервис.
                     </p>
                 </div>
 
@@ -81,10 +81,7 @@ export default function LoginPage() {
 
                 <div className="mt-6 text-center">
                     <p className="text-sm text-gray-600">
-                        Нет аккаунта?{' '}
-                        <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
-                            Зарегистрируйтесь
-                        </Link>
+                        Вход через Telegram автоматически создаст аккаунт, если у вас его еще нет
                     </p>
                 </div>
             </div>
