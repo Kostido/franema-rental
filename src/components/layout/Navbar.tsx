@@ -34,15 +34,9 @@ export default function Navbar() {
                     <div className="hidden sm:ml-6 sm:flex sm:items-center">
                         <Link
                             href="/auth/login"
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
-                            Войти
-                        </Link>
-                        <Link
-                            href="/auth/register"
-                            className="ml-2 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Регистрация
+                            Войти через Telegram
                         </Link>
                     </div>
                     <div className="-mr-2 flex items-center sm:hidden">
@@ -98,13 +92,7 @@ export default function Navbar() {
                             href="/auth/login"
                             className="block px-4 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
-                            Войти
-                        </Link>
-                        <Link
-                            href="/auth/register"
-                            className="block px-4 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                            Регистрация
+                            Войти через Telegram
                         </Link>
                     </div>
                 </div>
